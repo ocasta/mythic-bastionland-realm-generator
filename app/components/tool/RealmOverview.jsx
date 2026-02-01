@@ -31,10 +31,10 @@ const RealmOverview = ({ realm }) => {
 
   const hexGrid = createHexGrid();
   
-  // Group hexes into chunks of 12 for the 12-column layout
+  // Group hexes into chunks of the current column count
   const groupedHexes = [];
-  for (let i = 0; i < hexGrid.length; i += 12) {
-    groupedHexes.push(hexGrid.slice(i, i + 12));
+  for (let i = 0; i < hexGrid.length; i += realm.cols) {
+    groupedHexes.push(hexGrid.slice(i, i + realm.cols));
   }
 
   return (
@@ -44,7 +44,10 @@ const RealmOverview = ({ realm }) => {
         {groupedHexes.map((group, groupIndex) => (
           <div key={groupIndex} className="border-b border-gray-200 dark:border-gray-700 pb-2">
             {/* Top row: coordinates and terrain */}
-            <div className="grid grid-cols-12 gap-1 text-sm">
+            <div
+              className="grid gap-1 text-sm"
+              style={{ gridTemplateColumns: `repeat(${realm.cols}, minmax(0, 1fr))` }}
+            >
               {group.map((hex, index) => (
                 <div key={index} className="flex flex-col items-center gap-1">
                   <span className="font-mono text-xs text-gray-500 dark:text-gray-400">
@@ -56,7 +59,10 @@ const RealmOverview = ({ realm }) => {
             </div>
             
             {/* Bottom row: holdings, landmarks, myths */}
-            <div className="grid grid-cols-12 gap-1 text-xs text-gray-600 dark:text-gray-400 mt-1">
+            <div
+              className="grid gap-1 text-xs text-gray-600 dark:text-gray-400 mt-1"
+              style={{ gridTemplateColumns: `repeat(${realm.cols}, minmax(0, 1fr))` }}
+            >
               {group.map((hex, index) => (
                 <div key={index} className="space-y-1">
                   {hex.holding && (

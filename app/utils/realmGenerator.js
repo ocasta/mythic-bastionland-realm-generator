@@ -1,5 +1,5 @@
 import { terrainTypes } from "./hexUtils";
-import { Realm, Hex, landmarkTypes } from "./realmModel";
+import { Realm, Hex } from "./realmModel";
 import landmarksData from "../data/landmarks.json";
 import mythsData from "../data/myths.json";
 import seersData from "../data/seers.json";
@@ -7,6 +7,21 @@ import seersData from "../data/seers.json";
 const pickedLandmarks = new Set();
 const pickedSeers = new Set();
 const pickedMyths = new Set();
+
+const quickStartMyths = [
+  "The Wurm",
+  "The Underworld",
+  "The Dead",
+  "The Order",
+  "The Child",
+  "The Forest",
+  "The Goblin",
+  "The Wyvern",
+  "The River",
+  "The Shadow",
+  "The Wall",
+  "The Plague"
+];
 
 export function pickRandomLandmarkType() {
   const availableTypes = Object.keys(landmarksData);
@@ -42,45 +57,50 @@ export function pickRandomSeer() {
   return selectedSeer;
 }
 
-export function pickRandomMyth() {
-  const availableMyths = mythsData.filter(myth => !pickedMyths.has(myth));
-  
-  // If all myths have been picked, reset the set and use all myths
+export function pickRandomMyth(useQuickStartOnly = false) {
+  const mythPool = useQuickStartOnly ? quickStartMyths : mythsData;
+  const availableMyths = mythPool.filter(myth => !pickedMyths.has(myth));
+
+  // If all myths have been picked, reset the set and use all myths from the pool
   if (availableMyths.length === 0) {
     pickedMyths.clear();
-    availableMyths.push(...mythsData);
+    availableMyths.push(...mythPool);
   }
-  
+
   const selectedMyth = availableMyths[Math.floor(Math.random() * availableMyths.length)];
   pickedMyths.add(selectedMyth);
   return selectedMyth;
 }
 
 export class RealmGenerator {
-  static realmDimensions = { rows: 12, cols: 12 };
+  static defaultDimensions = { rows: 12, cols: 12 };
 
-  static createRealm() {
-    return new Realm(
-      RealmGenerator.realmDimensions.rows,
-      RealmGenerator.realmDimensions.cols
-    );
+  static createRealm(rows = RealmGenerator.defaultDimensions.rows, cols = RealmGenerator.defaultDimensions.cols) {
+    return new Realm(rows, cols);
   }
 
-  static generateRealm(terrainStrategy) {
-    const realm = this.createRealm();
+  static generateRealm(terrainStrategy, options = {}) {
+    const rows = options.rows ?? RealmGenerator.defaultDimensions.rows;
+    const cols = options.cols ?? RealmGenerator.defaultDimensions.cols;
+    const holdings = options.holdings ?? 4;
+    const landmarks = options.landmarks ?? 4;
+    const myths = options.myths ?? 6;
+    const useQuickStartMyths = options.useQuickStartMyths ?? false;
+
+    const realm = this.createRealm(rows, cols);
     RealmGenerator.generateTerrain(realm, terrainStrategy);
-    
+
     // Generate features in order of strictest constraints first
-    RealmGenerator.generateHoldings(realm);    // Holdings first (most restrictive)
-    RealmGenerator.generateLandmarks(realm);   // Landmarks second 
-    RealmGenerator.generateMyths(realm);       // Myths last (depends on holdings)
-    
+    RealmGenerator.generateHoldings(realm, holdings);    // Holdings first (most restrictive)
+    RealmGenerator.generateLandmarks(realm, landmarks);  // Landmarks second
+    RealmGenerator.generateMyths(realm, myths, useQuickStartMyths);  // Myths last (depends on holdings)
+
     return realm;
   }
 
-  static pickRandomLocation() {
-    const row = Math.floor(Math.random() * RealmGenerator.realmDimensions.rows);
-    const col = Math.floor(Math.random() * RealmGenerator.realmDimensions.cols);
+  static pickRandomLocation(realm) {
+    const row = Math.floor(Math.random() * realm.rows);
+    const col = Math.floor(Math.random() * realm.cols);
     return { row, col };
   }
 
@@ -191,7 +211,7 @@ export class RealmGenerator {
    */
   static findValidPosition(realm, validationFn, maxAttempts = 100) {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const { row, col } = this.pickRandomLocation();
+      const { row, col } = this.pickRandomLocation(realm);
       if (validationFn(realm, row, col)) {
         return { row, col };
       }
@@ -212,25 +232,24 @@ export class RealmGenerator {
   }
 
   static generateLandmarks(realm, count = 4) {
-    for (const type of landmarkTypes) {
-      for (let i = 0; i < count; i++) {
-        const position = this.findValidPosition(realm, this.isValidLandmarkPosition.bind(this));
-        if (position) {
-          const label = pickRandomLandmark(type);
-          const seer = type === "Sanctum" ? pickRandomSeer() : null;
-          realm.addLandmark(position.row, position.col, type, label, seer);
-        } else {
-          console.warn(`Could not place ${type} landmark ${i + 1} due to placement constraints`);
-        }
+    for (let i = 0; i < count; i++) {
+      const position = this.findValidPosition(realm, this.isValidLandmarkPosition.bind(this));
+      if (position) {
+        const type = pickRandomLandmarkType();
+        const label = pickRandomLandmark(type);
+        const seer = type === "Sanctum" ? pickRandomSeer() : null;
+        realm.addLandmark(position.row, position.col, type, label, seer);
+      } else {
+        console.warn(`Could not place landmark ${i + 1} due to placement constraints`);
       }
     }
   }
 
-  static generateMyths(realm, count = 6) {
+  static generateMyths(realm, count = 6, useQuickStartOnly = false) {
     for (let i = 0; i < count; i++) {
       const position = this.findValidPosition(realm, this.isValidMythPosition.bind(this));
       if (position) {
-        const name = pickRandomMyth();
+        const name = pickRandomMyth(useQuickStartOnly);
         realm.addMyth(position.row, position.col, name);
       } else {
         console.warn(`Could not place myth ${i + 1} due to placement constraints`);
@@ -253,32 +272,32 @@ export class RealmGenerator {
   static generateRandomTerrain(realm) {
     return TerrainGenerator.generateRandomTerrain(
       realm,
-      RealmGenerator.realmDimensions.rows,
-      RealmGenerator.realmDimensions.cols
+      realm.rows,
+      realm.cols
     );
   }
 
   static generateBalancedTerrain(realm) {
     return TerrainGenerator.generateBalancedTerrain(
       realm,
-      RealmGenerator.realmDimensions.rows,
-      RealmGenerator.realmDimensions.cols
+      realm.rows,
+      realm.cols
     );
   }
 
   static generateWeightedTerrain(realm) {
     return TerrainGenerator.generateWeightedTerrain(
       realm,
-      RealmGenerator.realmDimensions.rows,
-      RealmGenerator.realmDimensions.cols
+      realm.rows,
+      realm.cols
     );
   }
 
   static generateClusteredTerrain(realm) {
     return TerrainGenerator.generateClusteredTerrain(
       realm,
-      RealmGenerator.realmDimensions.rows,
-      RealmGenerator.realmDimensions.cols
+      realm.rows,
+      realm.cols
     );
   }
 }

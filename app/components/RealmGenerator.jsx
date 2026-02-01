@@ -20,13 +20,53 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const [dragStarted, setDragStarted] = useState(false);
   const [importError, setImportError] = useState(null);
   const [importSuccess, setImportSuccess] = useState(null);
+  const [holdingsCount, setHoldingsCount] = useState(4);
+  const [landmarksCount, setLandmarksCount] = useState(4);
+  const [mythsCount, setMythsCount] = useState(6);
+  const [useQuickStartMyths, setUseQuickStartMyths] = useState(false);
 
   const hexSize = hexConfig.defaultSize;
   const { width: svgWidth, height: svgHeight } = hexConfig.getSvgDimensions(
-    rows,
-    cols,
+    realm.rows,
+    realm.cols,
     hexSize
   );
+
+  const resetInteractionState = () => {
+    setSelectedHex(null);
+    setPaintingMode(false);
+    setSelectedTerrainType(null);
+    setIsDragging(false);
+    setDragStarted(false);
+  };
+
+  const clampValue = (value, min, max) => Math.max(min, Math.min(max, value));
+
+  const handleRowsChange = (value) => {
+    const nextRows = clampValue(value, 6, 12);
+    const newRealm = new Realm(nextRows, realm.cols, realm.name);
+    setRealm(newRealm);
+    resetInteractionState();
+  };
+
+  const handleColsChange = (value) => {
+    const nextCols = clampValue(value, 6, 12);
+    const newRealm = new Realm(realm.rows, nextCols, realm.name);
+    setRealm(newRealm);
+    resetInteractionState();
+  };
+
+  const handleHoldingsChange = (value) => {
+    setHoldingsCount(clampValue(value, 1, 4));
+  };
+
+  const handleLandmarksChange = (value) => {
+    setLandmarksCount(clampValue(value, 2, 6));
+  };
+
+  const handleMythsChange = (value) => {
+    setMythsCount(clampValue(value, 1, 6));
+  };
 
   const selectHex = (hex) => {
     // If in painting mode, don't select hex - paint instead
@@ -90,28 +130,60 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   };
 
   const generateRandomTerrain = () => {
-    const newRealm = RealmGeneratorUtil.generateRealm("random");
+    const newRealm = RealmGeneratorUtil.generateRealm("random", {
+      rows: realm.rows,
+      cols: realm.cols,
+      holdings: holdingsCount,
+      landmarks: landmarksCount,
+      myths: mythsCount,
+      useQuickStartMyths
+    });
     setRealm(newRealm);
   };
 
   const generateBalancedTerrain = () => {
-    const newRealm = RealmGeneratorUtil.generateRealm("balanced");
+    const newRealm = RealmGeneratorUtil.generateRealm("balanced", {
+      rows: realm.rows,
+      cols: realm.cols,
+      holdings: holdingsCount,
+      landmarks: landmarksCount,
+      myths: mythsCount,
+      useQuickStartMyths
+    });
     setRealm(newRealm);
   };
 
   const generateClusteredTerrain = () => {
-    const newRealm = RealmGeneratorUtil.generateRealm("clustered");
+    const newRealm = RealmGeneratorUtil.generateRealm("clustered", {
+      rows: realm.rows,
+      cols: realm.cols,
+      holdings: holdingsCount,
+      landmarks: landmarksCount,
+      myths: mythsCount,
+      useQuickStartMyths
+    });
     setRealm(newRealm);
   };
 
   const generateWeightedTerrain = () => {
-    const newRealm = RealmGeneratorUtil.generateRealm("weighted");
+    const newRealm = RealmGeneratorUtil.generateRealm("weighted", {
+      rows: realm.rows,
+      cols: realm.cols,
+      holdings: holdingsCount,
+      landmarks: landmarksCount,
+      myths: mythsCount,
+      useQuickStartMyths
+    });
     setRealm(newRealm);
   };
 
   const clearTerrain = () => {
     const newRealm = new Realm(rows, cols);
     setRealm(newRealm);
+    setHoldingsCount(4);
+    setLandmarksCount(4);
+    setMythsCount(6);
+    setUseQuickStartMyths(false);
   };
 
   const getTerrainStats = () => {
@@ -243,11 +315,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
       file,
       (importedRealm) => {
         setRealm(importedRealm);
-        setSelectedHex(null); // Clear selection
-        setPaintingMode(false); // Stop painting mode
-        setSelectedTerrainType(null);
-        setIsDragging(false);
-        setDragStarted(false);
+        resetInteractionState();
         setImportSuccess(`Realm "${importedRealm.name}" imported successfully!`);
         
         // Clear success message after 3 seconds
@@ -292,6 +360,18 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
           )}
 
           <RealmGenerationControls
+            rows={realm.rows}
+            cols={realm.cols}
+            holdings={holdingsCount}
+            landmarks={landmarksCount}
+            myths={mythsCount}
+            useQuickStartMyths={useQuickStartMyths}
+            onRowsChange={handleRowsChange}
+            onColsChange={handleColsChange}
+            onHoldingsChange={handleHoldingsChange}
+            onLandmarksChange={handleLandmarksChange}
+            onMythsChange={handleMythsChange}
+            onUseQuickStartMythsChange={setUseQuickStartMyths}
             onGenerateRandom={generateRandomTerrain}
             onGenerateBalanced={generateBalancedTerrain}
             onGenerateClustered={generateClusteredTerrain}

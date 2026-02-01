@@ -1,15 +1,55 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
-const RealmGenerationControls = ({ 
-  onGenerateRandom, 
-  onGenerateBalanced, 
-  onGenerateClustered, 
-  onGenerateWeighted, 
+const NumberStepper = ({ value, min, max, onChange }) => (
+  <div className="flex items-center">
+    <button
+      onClick={() => onChange(value - 1)}
+      disabled={value <= min}
+      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-l border border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      -
+    </button>
+    <input
+      type="number"
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      min={min}
+      max={max}
+      className="w-12 px-1 py-1 text-center border-t border-b border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+    />
+    <button
+      onClick={() => onChange(value + 1)}
+      disabled={value >= max}
+      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-r border border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      +
+    </button>
+  </div>
+);
+
+const RealmGenerationControls = ({
+  rows,
+  cols,
+  holdings,
+  landmarks,
+  myths,
+  useQuickStartMyths,
+  onRowsChange,
+  onColsChange,
+  onHoldingsChange,
+  onLandmarksChange,
+  onMythsChange,
+  onUseQuickStartMythsChange,
+  onGenerateRandom,
+  onGenerateBalanced,
+  onGenerateClustered,
+  onGenerateWeighted,
   onClear,
   onExport,
-  onImport 
+  onImport
 }) => {
   const fileInputRef = useRef(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleExport = () => {
     onExport();
@@ -32,6 +72,109 @@ const RealmGenerationControls = ({
 
   return (
     <div className="generation-controls mb-4">
+      <div className="mb-3">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300"
+        >
+          <span
+            className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+          >
+            ▶
+          </span>
+          Generation Settings
+        </button>
+
+        {isExpanded && (
+          <div className="mt-2 p-3 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-800">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Map Width
+                </label>
+                <NumberStepper
+                  value={cols}
+                  min={6}
+                  max={12}
+                  onChange={onColsChange}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Holdings
+                </label>
+                <NumberStepper
+                  value={holdings}
+                  min={1}
+                  max={4}
+                  onChange={onHoldingsChange}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Map Height
+                </label>
+                <NumberStepper
+                  value={rows}
+                  min={6}
+                  max={12}
+                  onChange={onRowsChange}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Landmarks
+                </label>
+                <NumberStepper
+                  value={landmarks}
+                  min={2}
+                  max={6}
+                  onChange={onLandmarksChange}
+                />
+              </div>
+              <div></div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Myths
+                </label>
+                <NumberStepper
+                  value={myths}
+                  min={1}
+                  max={6}
+                  onChange={onMythsChange}
+                />
+              </div>
+              <div className="col-span-2 flex items-center justify-between mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Use Only Quick Start Myths
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onUseQuickStartMythsChange(false)}
+                    className={`px-3 py-1 text-sm rounded border ${
+                      !useQuickStartMyths
+                        ? 'bg-blue-500 text-white border-blue-500'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    No
+                  </button>
+                  <button
+                    onClick={() => onUseQuickStartMythsChange(true)}
+                    className={`px-3 py-1 text-sm rounded border ${
+                      useQuickStartMyths
+                        ? 'bg-blue-500 text-white border-blue-500'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    Yes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
       <div className="flex flex-wrap gap-2 mb-2">
         <button
           onClick={onGenerateRandom}
