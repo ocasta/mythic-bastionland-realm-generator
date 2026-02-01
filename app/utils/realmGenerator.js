@@ -8,6 +8,22 @@ const pickedLandmarks = new Set();
 const pickedSeers = new Set();
 const pickedMyths = new Set();
 
+const holdingStyles = [
+  "Dark", "Ruined", "Hostile", "Ancient", "Ornate", "Wild",
+  "Pristine", "Fortified", "Unfinished", "Welcoming", "Proud", "Bright"
+];
+
+const holdingFeatures = [
+  "Turrets", "Tower", "Wall", "Battlements", "Citadel", "Gate",
+  "Spire", "Dome", "Beacons", "Bridge", "Pillars", "Moat"
+];
+
+export function generateHoldingName() {
+  const styleRoll = Math.floor(Math.random() * 12);
+  const featureRoll = Math.floor(Math.random() * 12);
+  return `${holdingStyles[styleRoll]} ${holdingFeatures[featureRoll]}`;
+}
+
 const quickStartMyths = [
   "The Wurm",
   "The Underworld",
@@ -224,7 +240,7 @@ export class RealmGenerator {
       const position = this.findValidPosition(realm, this.isValidHoldingPosition.bind(this));
       if (position) {
         const isSeatOfPower = i === 0;
-        realm.addHolding(position.row, position.col, isSeatOfPower, "Unknown");
+        realm.addHolding(position.row, position.col, isSeatOfPower, generateHoldingName());
       } else {
         console.warn(`Could not place holding ${i + 1} due to placement constraints`);
       }
