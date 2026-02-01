@@ -169,7 +169,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
           {barriers.map((barrier, index) => {
             const { x, y } = hexUtils.hexToWorld(barrier.row, barrier.col, hexSize);
             const { x1, y1, x2, y2 } = getBarrierLine(x, y, barrier.side, hexSize);
-            
+
             return (
               <line
                 key={`barrier-${barrier.row}-${barrier.col}-${barrier.side}-${index}`}
@@ -182,6 +182,97 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
                 className="pointer-events-none"
                 opacity="0.8"
               />
+            );
+          })}
+        </g>
+
+        {/* Feature name labels - rendered on top of everything */}
+        <g className="feature-name-labels pointer-events-none">
+          {holdings.map((holding, index) => {
+            const { x, y } = hexUtils.hexToWorld(holding.row, holding.col, hexSize);
+            if (!holding.name) return null;
+            const textWidth = holding.name.length * 5 + 4;
+            return (
+              <g key={`holding-label-${index}`} className="feature-name-label">
+                <rect
+                  x={x - textWidth / 2}
+                  y={y + 14}
+                  width={textWidth}
+                  height="14"
+                  fill="white"
+                  stroke="black"
+                  strokeWidth="1"
+                  rx="2"
+                />
+                <text
+                  x={x}
+                  y={y + 23}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize="8"
+                  fill="black"
+                >
+                  {holding.name}
+                </text>
+              </g>
+            );
+          })}
+          {landmarks.map((landmark, index) => {
+            const { x, y } = hexUtils.hexToWorld(landmark.row, landmark.col, hexSize);
+            if (!landmark.name) return null;
+            const textWidth = landmark.name.length * 5 + 4;
+            return (
+              <g key={`landmark-label-${index}`} className="feature-name-label">
+                <rect
+                  x={x - textWidth / 2}
+                  y={y + 14}
+                  width={textWidth}
+                  height="14"
+                  fill="white"
+                  stroke="black"
+                  strokeWidth="1"
+                  rx="2"
+                />
+                <text
+                  x={x}
+                  y={y + 23}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize="8"
+                  fill="black"
+                >
+                  {landmark.name}
+                </text>
+              </g>
+            );
+          })}
+          {myths.map((myth, index) => {
+            const { x, y } = hexUtils.hexToWorld(myth.row, myth.col, hexSize);
+            if (!myth.name) return null;
+            const textWidth = myth.name.length * 5 + 4;
+            return (
+              <g key={`myth-label-${index}`} className="feature-name-label">
+                <rect
+                  x={x - textWidth / 2}
+                  y={y + 14}
+                  width={textWidth}
+                  height="14"
+                  fill="white"
+                  stroke="black"
+                  strokeWidth="1"
+                  rx="2"
+                />
+                <text
+                  x={x}
+                  y={y + 23}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize="8"
+                  fill="black"
+                >
+                  {myth.name}
+                </text>
+              </g>
             );
           })}
         </g>

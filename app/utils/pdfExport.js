@@ -32,11 +32,27 @@ async function svgToCanvas(svgElement, { hideLabels = false } = {}) {
 
   // Remove labels if requested (for player PDF)
   if (hideLabels) {
-    // Remove all g elements that contain circles (these are the label groups)
+    // Remove all feature name labels
+    const nameLabelsGroup = clonedSvg.querySelector('g.feature-name-labels');
+    if (nameLabelsGroup) {
+      nameLabelsGroup.remove();
+    }
+
+    // Remove all g elements that contain circles (these are the reference label groups)
     const labelGroups = clonedSvg.querySelectorAll('g.pointer-events-none');
     labelGroups.forEach(group => {
-      if (group.querySelector('circle')) {
-        group.remove();
+      const circle = group.querySelector('circle');
+      if (circle) {
+        const fillColor = circle.getAttribute('fill');
+        // Blue circles (#2563eb) are holdings - keep them but remove text
+        if (fillColor === '#2563eb') {
+          // Remove the reference label text (S, H1, etc.)
+          const texts = group.querySelectorAll(':scope > text');
+          texts.forEach(text => text.remove());
+        } else {
+          // Remove landmarks (green) and myths (purple) entirely
+          group.remove();
+        }
       }
     });
   }
