@@ -10,7 +10,9 @@
   "dependencies": {
     "@react-router/node": "^7.5.3",
     "@react-router/serve": "^7.5.3",
+    "html2canvas": "^1.4.1",
     "isbot": "^5.1.27",
+    "jspdf": "^4.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router": "^7.5.3"

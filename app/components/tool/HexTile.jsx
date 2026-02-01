@@ -42,7 +42,7 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
       {/* Render holdings */}
       {holding && holdingRef && (
         <g className="pointer-events-none">
-          <circle cx={x} cy={y} r="12" fill="#4b5563" />
+          <circle cx={x} cy={y} r="12" fill="#2563eb" />
           <text
             x={x}
             y={y}
@@ -60,7 +60,7 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
       {/* Render landmarks */}
       {landmark && landmarkRef && (
         <g className="pointer-events-none">
-          <circle cx={x} cy={y} r="12" fill="#4b5563" />
+          <circle cx={x} cy={y} r="12" fill="#22c55e" />
           <text
             x={x}
             y={y}
@@ -78,7 +78,7 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
       {/* Render myths */}
       {myth && mythRef && (
         <g className="pointer-events-none">
-          <circle cx={x} cy={y} r="12" fill="#4b5563" />
+          <circle cx={x} cy={y} r="12" fill="#9333ea" />
           <text
             x={x}
             y={y}

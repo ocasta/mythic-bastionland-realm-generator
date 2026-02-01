@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { terrainTypes, hexConfig } from "../utils/hexUtils";
 import { Realm } from "../utils/realmModel";
 import { RealmGenerator as RealmGeneratorUtil, pickRandomLandmark, pickRandomLandmarkType, pickRandomMyth } from "../utils/realmGenerator";
 import { exportRealm, importRealm } from "../utils/realmExport";
+import { generateRealmPDF } from "../utils/pdfExport";
 import RealmGenerationControls from "./tool/RealmGenerationControls";
 import TerrainLegend from "./tool/TerrainLegend";
 import TerrainStatistics from "./tool/TerrainStatistics";
@@ -13,6 +14,7 @@ import RealmOverview from "./tool/RealmOverview";
 import RealmResources from "./tool/RealmResources";
 
 const RealmGenerator = ({ rows = 12, cols = 12 }) => {
+  const hexMapRef = useRef(null);
   const [realm, setRealm] = useState(() => new Realm(rows, cols));
   const [selectedHex, setSelectedHex] = useState(null);
   const [paintingMode, setPaintingMode] = useState(false);
@@ -311,24 +313,31 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const handleImportRealm = (file) => {
     setImportError(null);
     setImportSuccess(null);
-    
+
     importRealm(
       file,
       (importedRealm) => {
         setRealm(importedRealm);
         resetInteractionState();
         setImportSuccess(`Realm "${importedRealm.name}" imported successfully!`);
-        
+
         // Clear success message after 3 seconds
         setTimeout(() => setImportSuccess(null), 3000);
       },
       (error) => {
         setImportError(error);
-        
+
         // Clear error message after 5 seconds
         setTimeout(() => setImportError(null), 5000);
       }
     );
+  };
+
+  const handleGeneratePDF = async () => {
+    await generateRealmPDF({
+      mapContainer: hexMapRef.current,
+      realm
+    });
   };
 
   return (
@@ -380,6 +389,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
             onClear={clearTerrain}
             onExport={handleExportRealm}
             onImport={handleImportRealm}
+            onGeneratePDF={handleGeneratePDF}
           />
 
           <div className="legend flex flex-wrap gap-2 mb-4">
@@ -402,7 +412,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
             />
           </div>
 
-          <div className="flex-1">
+          <div ref={hexMapRef} className="flex-1">
             <HexMap
               realm={realm}
               svgWidth={svgWidth}

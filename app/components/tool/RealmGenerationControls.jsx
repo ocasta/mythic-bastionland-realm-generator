@@ -46,7 +46,8 @@ const RealmGenerationControls = ({
   onGenerateWeighted,
   onClear,
   onExport,
-  onImport
+  onImport,
+  onGeneratePDF
 }) => {
   const fileInputRef = useRef(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -221,6 +222,13 @@ const RealmGenerationControls = ({
           title="Import realm from JSON file"
         >
           Import Realm
+        </button>
+        <button
+          onClick={onGeneratePDF}
+          className="px-3 py-1 bg-rose-600 text-white rounded hover:bg-rose-700"
+          title="Generate PDF in new window"
+        >
+          Generate PDF
         </button>
         <input
           ref={fileInputRef}
