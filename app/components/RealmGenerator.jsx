@@ -10,6 +10,7 @@ import HexMap from "./tool/HexMap";
 import HexPainter from "./tool/HexPainter";
 import HexDetails from "./tool/HexDetails";
 import RealmOverview from "./tool/RealmOverview";
+import RealmResources from "./tool/RealmResources";
 
 const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const [realm, setRealm] = useState(() => new Realm(rows, cols));
@@ -436,8 +437,9 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
           </div>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-4 space-y-4">
           <RealmOverview realm={realm} />
+          <RealmResources realm={realm} />
         </div>
       </div>
     </div>

@@ -66,7 +66,25 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
             const landmark = landmarks.find(l => l.row === rowIndex && l.col === colIndex);
             const holding = holdings.find(h => h.row === rowIndex && h.col === colIndex);
             const myth = myths.find(m => m.row === rowIndex && m.col === colIndex);
-            
+
+            // Compute reference labels based on array index
+            const landmarkIndex = landmarks.findIndex(l => l.row === rowIndex && l.col === colIndex);
+            const mythIndex = myths.findIndex(m => m.row === rowIndex && m.col === colIndex);
+
+            // Holdings: "S" for Seat of Power, "H1", "H2" etc. for regular holdings
+            let holdingRef = null;
+            if (holding) {
+              if (holding.isSeatOfPower) {
+                holdingRef = 'S';
+              } else {
+                const nonSeatHoldings = holdings.filter(h => !h.isSeatOfPower);
+                const holdingIndex = nonSeatHoldings.findIndex(h => h.row === rowIndex && h.col === colIndex);
+                holdingRef = holdingIndex >= 0 ? `H${holdingIndex + 1}` : null;
+              }
+            }
+            const landmarkRef = landmarkIndex >= 0 ? `L${landmarkIndex + 1}` : null;
+            const mythRef = mythIndex >= 0 ? `M${mythIndex + 1}` : null;
+
             return (
               <HexTile
                 key={`${rowIndex}-${colIndex}`}
@@ -82,6 +100,9 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
                 landmark={landmark}
                 holding={holding}
                 myth={myth}
+                holdingRef={holdingRef}
+                landmarkRef={landmarkRef}
+                mythRef={mythRef}
               />
             );
           })

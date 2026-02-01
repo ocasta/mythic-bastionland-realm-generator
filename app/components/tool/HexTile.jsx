@@ -1,6 +1,6 @@
 import { hexUtils } from '../../utils/hexUtils';
 
-const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, landmark, holding, myth }) => {
+const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, landmark, holding, myth, holdingRef, landmarkRef, mythRef }) => {
   const { x, y } = hexUtils.hexToWorld(rowIndex, colIndex, hexSize);
   const hexPath = hexUtils.generateHexPath(x, y, hexSize);
   
@@ -40,62 +40,57 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
       />
       
       {/* Render holdings */}
-      {holding && (
-        <text
-          x={x}
-          y={y}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize="16"
-          className="pointer-events-none select-none holding-symbol fill-gray-900 dark:fill-white"
-          style={{ fontWeight: 'bold' }}
-        >
-          {holding.isSeatOfPower ? 'S' : 'H'}
-        </text>
+      {holding && holdingRef && (
+        <g className="pointer-events-none">
+          <circle cx={x} cy={y} r="12" fill="#4b5563" />
+          <text
+            x={x}
+            y={y}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize="10"
+            className="select-none fill-white"
+            style={{ fontWeight: 'bold' }}
+          >
+            {holdingRef}
+          </text>
+        </g>
       )}
-      
+
       {/* Render landmarks */}
-      {landmark && (
-        <text
-          x={x}
-          y={y}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize="16"
-          className="pointer-events-none select-none landmark-symbol fill-gray-900 dark:fill-white"
-          style={{ fontWeight: 'bold' }}
-        >
-          L
-        </text>
+      {landmark && landmarkRef && (
+        <g className="pointer-events-none">
+          <circle cx={x} cy={y} r="12" fill="#4b5563" />
+          <text
+            x={x}
+            y={y}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize="10"
+            className="select-none fill-white"
+            style={{ fontWeight: 'bold' }}
+          >
+            {landmarkRef}
+          </text>
+        </g>
       )}
-      
+
       {/* Render myths */}
-      {myth && (
-        <text
-          x={x}
-          y={y}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize="16"
-          className="pointer-events-none select-none myth-symbol fill-gray-900 dark:fill-white"
-          style={{ fontWeight: 'bold' }}
-        >
-          M
-        </text>
-      )}
-      
-      {/* Coordinates text (only show if no landmarks, holdings, or myths) */}
-      {!landmark && !holding && !myth && (
-        <text
-          x={x}
-          y={y}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize="8"
-          className="pointer-events-none select-none fill-gray-600 dark:fill-gray-400"
-        >
-          {rowIndex},{colIndex}
-        </text>
+      {myth && mythRef && (
+        <g className="pointer-events-none">
+          <circle cx={x} cy={y} r="12" fill="#4b5563" />
+          <text
+            x={x}
+            y={y}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize="10"
+            className="select-none fill-white"
+            style={{ fontWeight: 'bold' }}
+          >
+            {mythRef}
+          </text>
+        </g>
       )}
     </g>
   );
