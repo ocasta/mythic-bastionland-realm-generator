@@ -6,7 +6,15 @@ const TerrainLegend = ({ terrainTypes }) => {
       <div className="flex flex-wrap gap-2">
         {terrainTypes.map((terrain, index) => (
           <div key={terrain.type} className="flex items-center gap-1">
-            <div className="w-4 h-4 border border-gray-300 dark:border-gray-600" style={{ backgroundColor: terrain.color }}></div>
+            <div
+              className="w-4 h-4 border border-gray-300 dark:border-gray-600"
+              style={{
+                backgroundColor: terrain.color,
+                backgroundImage: terrain.image ? `url(${terrain.image})` : "none",
+                backgroundSize: "cover",
+                backgroundPosition: "center"
+              }}
+            ></div>
             <span className="text-sm text-gray-700 dark:text-gray-300">{terrain.name}</span>
           </div>
         ))}

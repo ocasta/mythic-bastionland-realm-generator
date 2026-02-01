@@ -2,13 +2,13 @@
 
 export const terrainTypes = [
   { type: "empty", color: "#f0f0f0", name: "Empty" },
-  { type: "plains", color: "#90EE90", name: "Plains" },
-  { type: "forest", color: "#228B22", name: "Forest" },
-  { type: "mountain", color: "#8B4513", name: "Mountain" },
-  { type: "water", color: "#4682B4", name: "Water" },
-  { type: "desert", color: "#F4A460", name: "Desert" },
-  { type: "swamp", color: "#556B2F", name: "Swamp" },
-  { type: "city", color: "#696969", name: "City" },
+  { type: "plains", color: "#90EE90", name: "Plains", image: "/terrain/plains.png" },
+  { type: "forest", color: "#228B22", name: "Forest", image: "/terrain/forest.png" },
+  { type: "mountain", color: "#8B4513", name: "Mountain", image: "/terrain/mountains.png" },
+  { type: "water", color: "#4682B4", name: "Water", image: "/terrain/water.png" },
+  { type: "desert", color: "#F4A460", name: "Desert", image: "/terrain/desert.png" },
+  { type: "swamp", color: "#556B2F", name: "Swamp", image: "/terrain/swamp.png" },
+  { type: "city", color: "#696969", name: "City", image: "/terrain/city.png" },
 ];
 
 // Centralized hex configuration

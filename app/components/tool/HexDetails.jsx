@@ -86,7 +86,14 @@ const HexDetails = ({
               <div className="flex items-center space-x-2">
                 <div
                   className="w-4 h-4 rounded border border-gray-300 flex-shrink-0"
-                  style={{ backgroundColor: selectedHex.terrainType.color }}
+                  style={{
+                    backgroundColor: selectedHex.terrainType.color,
+                    backgroundImage: selectedHex.terrainType.image
+                      ? `url(${selectedHex.terrainType.image})`
+                      : "none",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center"
+                  }}
                 ></div>
                 <span>{selectedHex.terrainType.name}</span>
               </div>
@@ -118,7 +125,12 @@ const HexDetails = ({
                   >
                     <div
                       className="w-4 h-4 rounded border border-gray-300 flex-shrink-0"
-                      style={{ backgroundColor: terrain.color }}
+                      style={{
+                        backgroundColor: terrain.color,
+                        backgroundImage: terrain.image ? `url(${terrain.image})` : "none",
+                        backgroundSize: "cover",
+                        backgroundPosition: "center"
+                      }}
                     ></div>
                     <span>{terrain.name}</span>
                   </button>

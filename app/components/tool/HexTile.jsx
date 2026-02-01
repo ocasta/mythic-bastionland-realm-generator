@@ -20,13 +20,18 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
     }
   };
   
+  const fill = hex.terrainType.image
+    ? `url(#terrain-${hex.terrainType.type})`
+    : hex.terrainType.color;
+
   return (
     <g>
       <path
         d={hexPath}
-        fill={hex.terrainType.color}
+        fill={fill}
         stroke="none"
         className={`hex-tile ${cursorClass} hover:opacity-80 transition-opacity`}
+        stroke="none"
         onClick={handleClick}
         onMouseDown={handleMouseDown}
         onMouseEnter={() => onHexMouseEnter && onHexMouseEnter(hex)}

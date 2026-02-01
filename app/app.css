@@ -24,7 +24,6 @@ body {
 }
 
 .hex-tile:hover {
-  stroke-width: 2;
   filter: brightness(1.1);
 }
 

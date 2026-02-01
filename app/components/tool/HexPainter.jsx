@@ -18,7 +18,18 @@ const HexPainter = ({ terrainTypes, paintingMode, selectedTerrainType, onStartPa
               borderLeftWidth: '4px'
             }}
           >
-            {terrain.name}
+            <span className="inline-flex items-center gap-2">
+              <span
+                className="w-4 h-4 border border-gray-300 dark:border-gray-600"
+                style={{
+                  backgroundColor: terrain.color,
+                  backgroundImage: terrain.image ? `url(${terrain.image})` : "none",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center"
+                }}
+              ></span>
+              {terrain.name}
+            </span>
           </button>
         ))}
         
