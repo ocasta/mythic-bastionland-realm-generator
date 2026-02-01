@@ -42,7 +42,7 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
       {/* Render holdings */}
       {holding && holdingRef && (
         <g className="pointer-events-none">
-          <circle cx={x} cy={y} r="12" fill="#2563eb" />
+          <circle cx={x} cy={y} r="12" fill={holdingRef === 'S' ? '#d4af37' : '#2563eb'} />
           <text
             x={x}
             y={y}

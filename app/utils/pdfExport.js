@@ -44,8 +44,8 @@ async function svgToCanvas(svgElement, { hideLabels = false } = {}) {
       const circle = group.querySelector('circle');
       if (circle) {
         const fillColor = circle.getAttribute('fill');
-        // Blue circles (#2563eb) are holdings - keep them but remove text
-        if (fillColor === '#2563eb') {
+        // Blue circles (#2563eb) are regular holdings, gold (#d4af37) is Seat of Power - keep them but remove text
+        if (fillColor === '#2563eb' || fillColor === '#d4af37') {
           // Remove the reference label text (S, H1, etc.)
           const texts = group.querySelectorAll(':scope > text');
           texts.forEach(text => text.remove());
