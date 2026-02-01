@@ -1,7 +1,7 @@
 import HexTile from "./HexTile";
-import { hexUtils, terrainTypes } from "../../utils/hexUtils";
+import { hexUtils } from "../../utils/hexUtils";
 
-const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp }) => {
+const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, terrainStyle }) => {
   const holdings = realm.getHoldings();
   const landmarks = realm.getLandmarks();
   const myths = realm.getMyths();
@@ -41,25 +41,34 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
         <defs>
           {terrainTypes
             .filter((terrain) => terrain.image)
-            .map((terrain) => (
-              <pattern
-                key={terrain.type}
-                id={`terrain-${terrain.type}`}
-                patternUnits="objectBoundingBox"
-                patternContentUnits="objectBoundingBox"
-                width="1"
-                height="1"
-              >
-                <image
-                  href={terrain.image}
-                  x="-0.12"
-                  y="-0.06"
-                  width="1.24"
-                  height="1.12"
-                  preserveAspectRatio="xMidYMid slice"
-                />
-              </pattern>
-            ))}
+            .map((terrain) => {
+              // Comic style needs more horizontal overflow to hide edge seams
+              const isComic = terrainStyle === 'comic';
+              const xOffset = isComic ? -0.25 : -0.12;
+              const yOffset = isComic ? -0.12 : -0.06;
+              const imgWidth = isComic ? 1.5 : 1.24;
+              const imgHeight = isComic ? 1.24 : 1.12;
+
+              return (
+                <pattern
+                  key={terrain.type}
+                  id={`terrain-${terrain.type}`}
+                  patternUnits="objectBoundingBox"
+                  patternContentUnits="objectBoundingBox"
+                  width="1"
+                  height="1"
+                >
+                  <image
+                    href={terrain.image}
+                    x={xOffset}
+                    y={yOffset}
+                    width={imgWidth}
+                    height={imgHeight}
+                    preserveAspectRatio="xMidYMid slice"
+                  />
+                </pattern>
+              );
+            })}
         </defs>
         {realm.hexMap.map((row, rowIndex) =>
           row.map((hex, colIndex) => {

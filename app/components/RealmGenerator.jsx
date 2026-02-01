@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { terrainTypes, hexConfig } from "../utils/hexUtils";
+import { terrainTypes, hexConfig, getTerrainTypesForStyle } from "../utils/hexUtils";
 import { Realm } from "../utils/realmModel";
 import { RealmGenerator as RealmGeneratorUtil, pickRandomLandmark, pickRandomLandmarkType, pickRandomMyth } from "../utils/realmGenerator";
 import { exportRealm, importRealm } from "../utils/realmExport";
@@ -27,6 +27,9 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const [landmarksCount, setLandmarksCount] = useState(4);
   const [mythsCount, setMythsCount] = useState(6);
   const [useQuickStartMyths, setUseQuickStartMyths] = useState(false);
+  const [terrainStyle, setTerrainStyle] = useState("watercolour");
+
+  const styledTerrainTypes = getTerrainTypesForStyle(terrainStyle);
 
   const hexSize = hexConfig.defaultSize;
   const { width: svgWidth, height: svgHeight } = hexConfig.getSvgDimensions(
@@ -401,22 +404,24 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
           />
 
           <div className="legend flex flex-wrap gap-2 mb-4">
-            <TerrainLegend terrainTypes={terrainTypes} />
+            <TerrainLegend terrainTypes={styledTerrainTypes} />
             <TerrainStatistics
               terrainStats={getTerrainStats()}
-              terrainTypes={terrainTypes}
+              terrainTypes={styledTerrainTypes}
             />
           </div>
         </div>
 
         <div className="flex gap-4 items-start">
           <div className="w-64 flex-shrink-0">
-            <HexPainter 
-              terrainTypes={terrainTypes}
+            <HexPainter
+              terrainTypes={styledTerrainTypes}
               paintingMode={paintingMode}
               selectedTerrainType={selectedTerrainType}
               onStartPainting={startPainting}
               onStopPainting={stopPainting}
+              terrainStyle={terrainStyle}
+              onTerrainStyleChange={setTerrainStyle}
             />
           </div>
 
@@ -432,13 +437,15 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
               onHexMouseDown={handleHexMouseDown}
               onHexMouseEnter={handleHexMouseEnter}
               onHexMouseUp={handleHexMouseUp}
+              terrainTypes={styledTerrainTypes}
+              terrainStyle={terrainStyle}
             />
           </div>
 
           <div className="w-64 flex-shrink-0">
-            <HexDetails 
-              realm={realm} 
-              selectedHex={selectedHex} 
+            <HexDetails
+              realm={realm}
+              selectedHex={selectedHex}
               onTerrainChange={editHexTerrain}
               onAddHolding={addHolding}
               onUpdateHolding={updateHolding}
@@ -451,6 +458,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
               onRemoveMyth={removeMyth}
               onAddBarrier={addBarrier}
               onRemoveBarrier={removeBarrier}
+              terrainTypes={styledTerrainTypes}
             />
           </div>
         </div>

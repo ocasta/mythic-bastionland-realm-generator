@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { terrainTypes } from "../../utils/hexUtils";
 import {
   landmarkTypes,
   Holding,
@@ -23,6 +22,7 @@ const HexDetails = ({
   onRemoveMyth,
   onAddBarrier,
   onRemoveBarrier,
+  terrainTypes,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 

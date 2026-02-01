@@ -1,8 +1,20 @@
-const HexPainter = ({ terrainTypes, paintingMode, selectedTerrainType, onStartPainting, onStopPainting }) => {
+const HexPainter = ({ terrainTypes, paintingMode, selectedTerrainType, onStartPainting, onStopPainting, terrainStyle, onTerrainStyleChange }) => {
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-4 h-fit">
       <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Hex Painter</h3>
-      
+
+      <div className="mb-4">
+        <label className="block text-sm font-semibold mb-1 text-gray-900 dark:text-white">Terrain Style</label>
+        <select
+          value={terrainStyle}
+          onChange={(e) => onTerrainStyleChange(e.target.value)}
+          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+        >
+          <option value="watercolour">Watercolour</option>
+          <option value="comic">Comic</option>
+        </select>
+      </div>
+
       <div className="space-y-2">
         {terrainTypes.map((terrain) => (
           <button
