@@ -47,7 +47,8 @@ const RealmGenerationControls = ({
   onClear,
   onExport,
   onImport,
-  onGeneratePDF
+  onGenerateGMPDF,
+  onGeneratePlayerPDF
 }) => {
   const fileInputRef = useRef(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -224,11 +225,18 @@ const RealmGenerationControls = ({
           Import Realm
         </button>
         <button
-          onClick={onGeneratePDF}
+          onClick={onGenerateGMPDF}
           className="px-3 py-1 bg-rose-600 text-white rounded hover:bg-rose-700"
-          title="Generate PDF in new window"
+          title="Export PDF with labels and resources list"
         >
-          Generate PDF
+          Export GM's PDF
+        </button>
+        <button
+          onClick={onGeneratePlayerPDF}
+          className="px-3 py-1 bg-amber-600 text-white rounded hover:bg-amber-700"
+          title="Export PDF with map only (no labels)"
+        >
+          Export Player's PDF
         </button>
         <input
           ref={fileInputRef}

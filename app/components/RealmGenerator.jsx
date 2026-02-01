@@ -3,7 +3,7 @@ import { terrainTypes, hexConfig } from "../utils/hexUtils";
 import { Realm } from "../utils/realmModel";
 import { RealmGenerator as RealmGeneratorUtil, pickRandomLandmark, pickRandomLandmarkType, pickRandomMyth } from "../utils/realmGenerator";
 import { exportRealm, importRealm } from "../utils/realmExport";
-import { generateRealmPDF } from "../utils/pdfExport";
+import { generateGMPDF, generatePlayerPDF } from "../utils/pdfExport";
 import RealmGenerationControls from "./tool/RealmGenerationControls";
 import TerrainLegend from "./tool/TerrainLegend";
 import TerrainStatistics from "./tool/TerrainStatistics";
@@ -333,8 +333,15 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     );
   };
 
-  const handleGeneratePDF = async () => {
-    await generateRealmPDF({
+  const handleGenerateGMPDF = async () => {
+    await generateGMPDF({
+      mapContainer: hexMapRef.current,
+      realm
+    });
+  };
+
+  const handleGeneratePlayerPDF = async () => {
+    await generatePlayerPDF({
       mapContainer: hexMapRef.current,
       realm
     });
@@ -389,7 +396,8 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
             onClear={clearTerrain}
             onExport={handleExportRealm}
             onImport={handleImportRealm}
-            onGeneratePDF={handleGeneratePDF}
+            onGenerateGMPDF={handleGenerateGMPDF}
+            onGeneratePlayerPDF={handleGeneratePlayerPDF}
           />
 
           <div className="legend flex flex-wrap gap-2 mb-4">

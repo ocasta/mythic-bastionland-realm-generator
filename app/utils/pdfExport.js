@@ -22,10 +22,24 @@ async function imageToDataURL(url) {
 
 /**
  * Converts an SVG element to a canvas by inlining all images
+ * @param {SVGElement} svgElement - The SVG element to convert
+ * @param {Object} options - Options for conversion
+ * @param {boolean} options.hideLabels - Whether to hide reference labels (circles with text)
  */
-async function svgToCanvas(svgElement) {
+async function svgToCanvas(svgElement, { hideLabels = false } = {}) {
   // Clone the SVG to avoid modifying the original
   const clonedSvg = svgElement.cloneNode(true);
+
+  // Remove labels if requested (for player PDF)
+  if (hideLabels) {
+    // Remove all g elements that contain circles (these are the label groups)
+    const labelGroups = clonedSvg.querySelectorAll('g.pointer-events-none');
+    labelGroups.forEach(group => {
+      if (group.querySelector('circle')) {
+        group.remove();
+      }
+    });
+  }
 
   // Get all image elements in patterns and inline them
   const images = clonedSvg.querySelectorAll('image');
@@ -87,14 +101,14 @@ async function svgToCanvas(svgElement) {
 }
 
 /**
- * Generates a PDF containing the hex map and realm resources.
+ * Generates a GM's PDF containing the hex map with labels and realm resources list.
  * Opens the PDF in a new browser window.
  *
  * @param {Object} options
  * @param {HTMLElement} options.mapContainer - The DOM element containing the HexMap
  * @param {Object} options.realm - The realm object with holdings, landmarks, myths
  */
-export async function generateRealmPDF({ mapContainer, realm }) {
+export async function generateGMPDF({ mapContainer, realm }) {
   const pdf = new jsPDF('portrait', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
@@ -244,4 +258,61 @@ function addResourcesSectionCompact(pdf, realm, startY, margin, contentWidth) {
   return yPosition;
 }
 
-export default generateRealmPDF;
+/**
+ * Generates a Player's PDF containing just the hex map without labels or resources.
+ * Opens the PDF in a new browser window.
+ *
+ * @param {Object} options
+ * @param {HTMLElement} options.mapContainer - The DOM element containing the HexMap
+ * @param {Object} options.realm - The realm object (used for name only)
+ */
+export async function generatePlayerPDF({ mapContainer, realm }) {
+  const pdf = new jsPDF('portrait', 'mm', 'a4');
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 10;
+  const contentWidth = pageWidth - margin * 2;
+
+  // Title
+  pdf.setFontSize(16);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(realm.name || 'Unnamed Realm', pageWidth / 2, margin + 5, { align: 'center' });
+
+  let yPosition = margin + 12;
+
+  // Calculate available space for map (full page minus title and margins)
+  const availableMapHeight = pageHeight - yPosition - margin;
+
+  // Capture the hex map SVG as an image (without labels)
+  if (mapContainer) {
+    const svgElement = mapContainer.querySelector('svg');
+    if (svgElement) {
+      try {
+        const canvas = await svgToCanvas(svgElement, { hideLabels: true });
+        const imgData = canvas.toDataURL('image/png');
+        const imgAspectRatio = canvas.width / canvas.height;
+
+        // Calculate image dimensions to fit available space
+        let imgWidth = contentWidth;
+        let imgHeight = imgWidth / imgAspectRatio;
+
+        if (imgHeight > availableMapHeight) {
+          imgHeight = availableMapHeight;
+          imgWidth = imgHeight * imgAspectRatio;
+        }
+
+        const xOffset = (pageWidth - imgWidth) / 2;
+        pdf.addImage(imgData, 'PNG', xOffset, yPosition, imgWidth, imgHeight);
+      } catch (error) {
+        console.error('Error capturing hex map:', error);
+      }
+    }
+  }
+
+  // Open PDF in new window
+  const pdfBlob = pdf.output('blob');
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+  window.open(pdfUrl, '_blank');
+}
+
+export default generateGMPDF;
