@@ -28,6 +28,7 @@
 - **Holdings**: Add settlements and seats of power to your realm
 - **Landmarks**: Place dwellings, sanctums, monuments, hazards, curses, and ruins
 - **Myths**: Incorporate the mysterious forces that shape your world
+- **Quick Start Mode**: Option to use only myths and seers from the Quick Start rules
 - Real-time statistics and terrain distribution analysis
 
 ### 🎨 **User-Friendly Interface**

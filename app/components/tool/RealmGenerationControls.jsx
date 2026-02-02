@@ -7,13 +7,13 @@ const RealmGenerationControls = ({
   holdings,
   landmarks,
   myths,
-  useQuickStartMyths,
+  useQuickStartLists,
   onRowsChange,
   onColsChange,
   onHoldingsChange,
   onLandmarksChange,
   onMythsChange,
-  onUseQuickStartMythsChange,
+  onUseQuickStartListsChange,
   onGenerateRandom,
   onGenerateBalanced,
   onGenerateClustered,
@@ -123,13 +123,13 @@ const RealmGenerationControls = ({
               </div>
               <div className="col-span-2 flex items-center justify-between mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                 <label className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Use Only Quick Start Myths
+                  Use Only Quick Start Myths & Seers
                 </label>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => onUseQuickStartMythsChange(false)}
+                    onClick={() => onUseQuickStartListsChange(false)}
                     className={`px-3 py-1 text-sm rounded border ${
-                      !useQuickStartMyths
+                      !useQuickStartLists
                         ? 'bg-blue-500 text-white border-blue-500'
                         : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
                     }`}
@@ -137,9 +137,9 @@ const RealmGenerationControls = ({
                     No
                   </button>
                   <button
-                    onClick={() => onUseQuickStartMythsChange(true)}
+                    onClick={() => onUseQuickStartListsChange(true)}
                     className={`px-3 py-1 text-sm rounded border ${
-                      useQuickStartMyths
+                      useQuickStartLists
                         ? 'bg-blue-500 text-white border-blue-500'
                         : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
                     }`}

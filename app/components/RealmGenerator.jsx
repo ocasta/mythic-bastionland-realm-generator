@@ -26,7 +26,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const [holdingsCount, setHoldingsCount] = useState(4);
   const [landmarksCount, setLandmarksCount] = useState(4);
   const [mythsCount, setMythsCount] = useState(6);
-  const [useQuickStartMyths, setUseQuickStartMyths] = useState(false);
+  const [useQuickStartLists, setUseQuickStartLists] = useState(false);
   const [terrainStyle, setTerrainStyle] = useState("watercolour");
   const [showNames, setShowNames] = useState(true);
   const [draggingFeature, setDraggingFeature] = useState(null);
@@ -146,7 +146,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
       holdings: holdingsCount,
       landmarks: landmarksCount,
       myths: mythsCount,
-      useQuickStartMyths
+      useQuickStartLists
     });
     setRealm(newRealm);
   };
@@ -158,7 +158,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
       holdings: holdingsCount,
       landmarks: landmarksCount,
       myths: mythsCount,
-      useQuickStartMyths
+      useQuickStartLists
     });
     setRealm(newRealm);
   };
@@ -170,7 +170,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
       holdings: holdingsCount,
       landmarks: landmarksCount,
       myths: mythsCount,
-      useQuickStartMyths
+      useQuickStartLists
     });
     setRealm(newRealm);
   };
@@ -182,7 +182,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
       holdings: holdingsCount,
       landmarks: landmarksCount,
       myths: mythsCount,
-      useQuickStartMyths
+      useQuickStartLists
     });
     setRealm(newRealm);
   };
@@ -193,7 +193,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     setHoldingsCount(4);
     setLandmarksCount(4);
     setMythsCount(6);
-    setUseQuickStartMyths(false);
+    setUseQuickStartLists(false);
   };
 
   const getTerrainStats = () => {
@@ -474,13 +474,13 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
             holdings={holdingsCount}
             landmarks={landmarksCount}
             myths={mythsCount}
-            useQuickStartMyths={useQuickStartMyths}
+            useQuickStartLists={useQuickStartLists}
             onRowsChange={handleRowsChange}
             onColsChange={handleColsChange}
             onHoldingsChange={handleHoldingsChange}
             onLandmarksChange={handleLandmarksChange}
             onMythsChange={handleMythsChange}
-            onUseQuickStartMythsChange={setUseQuickStartMyths}
+            onUseQuickStartListsChange={setUseQuickStartLists}
             onGenerateRandom={generateRandomTerrain}
             onGenerateBalanced={generateBalancedTerrain}
             onGenerateClustered={generateClusteredTerrain}

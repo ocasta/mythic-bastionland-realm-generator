@@ -60,9 +60,25 @@ const quickStartMyths = [
   "The Plague"
 ];
 
+const quickStartSeers = [
+  "The Rotted Seer",
+  "The Swollen Seer",
+  "The Entombed Seer",
+  "The Reed Seer",
+  "The Loathed Seer",
+  "The Lost Seer",
+  "The Carved Seer",
+  "The Enthroned Seer",
+  "The Jewelled Seer",
+  "The Jawbone Seer",
+  "The Veiled Seer",
+  "The Serpent Seer"
+];
+
 // Create pickers using the factory function
 const landmarkPicker = createRandomPicker([]);
 const seerPicker = createRandomPicker(seersData);
+const quickStartSeerPicker = createRandomPicker(quickStartSeers);
 const mythPicker = createRandomPicker(mythsData);
 const quickStartMythPicker = createRandomPicker(quickStartMyths);
 
@@ -75,8 +91,8 @@ export function pickRandomLandmark(type) {
   return landmarkPicker(landmarksData[type]);
 }
 
-export function pickRandomSeer() {
-  return seerPicker();
+export function pickRandomSeer(useQuickStartOnly = false) {
+  return useQuickStartOnly ? quickStartSeerPicker() : seerPicker();
 }
 
 export function pickRandomMyth(useQuickStartOnly = false) {
@@ -96,15 +112,15 @@ export class RealmGenerator {
     const holdings = options.holdings ?? 4;
     const landmarks = options.landmarks ?? 4;
     const myths = options.myths ?? 6;
-    const useQuickStartMyths = options.useQuickStartMyths ?? false;
+    const useQuickStartLists = options.useQuickStartLists ?? false;
 
     const realm = this.createRealm(rows, cols);
     RealmGenerator.generateTerrain(realm, terrainStrategy);
 
     // Generate features in order of strictest constraints first
     RealmGenerator.generateHoldings(realm, holdings);    // Holdings first (most restrictive)
-    RealmGenerator.generateLandmarks(realm, landmarks);  // Landmarks second
-    RealmGenerator.generateMyths(realm, myths, useQuickStartMyths);  // Myths last (depends on holdings)
+    RealmGenerator.generateLandmarks(realm, landmarks, useQuickStartLists);  // Landmarks second
+    RealmGenerator.generateMyths(realm, myths, useQuickStartLists);  // Myths last (depends on holdings)
 
     return realm;
   }
@@ -242,13 +258,13 @@ export class RealmGenerator {
     }
   }
 
-  static generateLandmarks(realm, count = 4) {
+  static generateLandmarks(realm, count = 4, useQuickStartOnly = false) {
     for (let i = 0; i < count; i++) {
       const position = this.findValidPosition(realm, this.isValidLandmarkPosition.bind(this));
       if (position) {
         const type = pickRandomLandmarkType();
         const label = pickRandomLandmark(type);
-        const seer = type === "Sanctum" ? pickRandomSeer() : null;
+        const seer = type === "Sanctum" ? pickRandomSeer(useQuickStartOnly) : null;
         realm.addLandmark(position.row, position.col, type, label, seer);
       } else {
         console.warn(`Could not place landmark ${i + 1} due to placement constraints`);
