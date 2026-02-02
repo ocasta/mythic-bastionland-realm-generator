@@ -9,11 +9,13 @@ const PDF_STYLES = {
   titleFontSize: 16,
   sectionFontSize: 10,
   contentFontSize: 9,
+  footerFontSize: 8,
   colors: {
     holdings: [37, 99, 235],   // Blue
     landmarks: [34, 197, 94],  // Green
     myths: [147, 51, 234],     // Purple
     text: [0, 0, 0],
+    footer: [128, 128, 128],   // Gray
   },
 };
 
@@ -277,6 +279,20 @@ function addResourcesSection(pdf, realm, startY, margin) {
 }
 
 /**
+ * Adds a footer to the PDF
+ */
+function addFooter(pdf) {
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const { margin, footerFontSize, colors } = PDF_STYLES;
+
+  pdf.setFontSize(footerFontSize);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(...colors.footer);
+  pdf.text('Created by mmacphail/mythic-bastionland-realm-generator', pageWidth / 2, pageHeight - margin / 2, { align: 'center' });
+}
+
+/**
  * Calculates map dimensions to fit within available space
  */
 function calculateMapDimensions(canvas, maxWidth, maxHeight) {
@@ -362,6 +378,9 @@ export async function generateGMPDF({ mapContainer, realm }) {
   // Add Resources section on the right
   addResourcesSection(pdf, realm, contentTop, resourcesX);
 
+  // Add footer
+  addFooter(pdf);
+
   // Open PDF in new window
   const pdfBlob = pdf.output('blob');
   const pdfUrl = URL.createObjectURL(pdfBlob);
@@ -409,6 +428,9 @@ export async function generatePlayerPDF({ mapContainer, realm }) {
       }
     }
   }
+
+  // Add footer
+  addFooter(pdf);
 
   // Open PDF in new window
   const pdfBlob = pdf.output('blob');
