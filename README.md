@@ -19,7 +19,7 @@
 ## ✨ Features
 
 ### 🗺️ **Interactive Hex Map Generator**
-- Generate 12x12 hex-based realms with various terrain types
+- Generate hex-based realms with customisable grid size (default 12x12)
 - Multiple generation algorithms: Random, Balanced, Clustered, and Weighted
 - Real-time terrain painting with intuitive brush tools
 - Interactive hex selection and editing
@@ -34,7 +34,14 @@
 - Clean, modern interface built with React and Tailwind CSS
 - Responsive design that works on desktop and tablet
 - Color-coded terrain types with visual legend
-- Comprehensive realm overview and export capabilities
+- Multiple terrain styles: Watercolour, Comic, or plain colours
+- Drag and drop holdings, landmarks, and myths between hexes
+- Toggle feature name labels on the map
+
+### 📄 **PDF Export**
+- Generate GM PDF with hex map and feature reference list (landscape A4)
+- Generate Player PDF with clean map for handouts (no labels or spoilers)
+- High-quality SVG-to-canvas rendering with terrain textures
 
 ### 🔧 **Developer Features**
 - Modern React 19 with React Router 7
@@ -103,6 +110,12 @@ docker run -p 3000:3000 mythic-realm-maker
    - Add **Holdings** for settlements and power centers
    - Place **Landmarks** to add character and challenges
    - Incorporate **Myths** to weave mystery into your world
+   - Drag and drop features to reposition them on the map
+
+4. **Export Your Realm:**
+   - Generate a **GM PDF** with the full map and feature reference list
+   - Generate a **Player PDF** with a clean map for handouts
+   - Toggle **Show Names** to display or hide feature labels on the map
 
 ### 🗺️ **Terrain Types**
 - **Plains** - Open grasslands and farmable land
@@ -130,7 +143,8 @@ mythic-bastioland-realm-maker/
 │   ├── utils/
 │   │   ├── realmModel.js          # Core data models
 │   │   ├── realmGenerator.js      # Generation algorithms
-│   │   └── hexUtils.js            # Hex grid mathematics
+│   │   ├── hexUtils.js            # Hex grid mathematics
+│   │   └── pdfExport.js           # PDF generation
 │   └── routes/
 ├── public/
 └── Docker configuration
