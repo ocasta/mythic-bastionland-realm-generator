@@ -1,12 +1,12 @@
 import { hexUtils } from '../../utils/hexUtils';
 
-const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, landmark, holding, myth, holdingRef, landmarkRef, mythRef }) => {
+const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, landmark, holding, myth, holdingRef, landmarkRef, mythRef, terrainTypes, showNames }) => {
   const { x, y } = hexUtils.hexToWorld(rowIndex, colIndex, hexSize);
   const hexPath = hexUtils.generateHexPath(x, y, hexSize);
-  
+
   // Change cursor based on mode
   const cursorClass = paintingMode ? 'cursor-crosshair' : 'cursor-pointer';
-  
+
   const handleMouseDown = (e) => {
     if (paintingMode) {
       e.preventDefault(); // Prevent text selection and default drag behavior
@@ -19,8 +19,12 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
       selectHex(hex);
     }
   };
-  
-  const fill = hex.terrainType.image
+
+  // Look up current style's terrain to check if images are enabled
+  const currentTerrain = terrainTypes?.find(t => t.type === hex.terrainType.type);
+  const hasImage = currentTerrain?.image;
+
+  const fill = hasImage
     ? `url(#terrain-${hex.terrainType.type})`
     : hex.terrainType.color;
 
@@ -42,7 +46,14 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
       {/* Render holdings */}
       {holding && holdingRef && (
         <g className="pointer-events-none">
-          <circle cx={x} cy={y} r="12" fill={holdingRef === 'S' ? '#d4af37' : '#2563eb'} />
+          <circle
+            cx={x}
+            cy={y}
+            r="12"
+            fill={holdingRef === 'S' ? '#fbbf24' : '#2563eb'}
+            stroke={holdingRef === 'S' ? '#000000' : 'none'}
+            strokeWidth={holdingRef === 'S' ? 2 : 0}
+          />
           <text
             x={x}
             y={y}

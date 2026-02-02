@@ -13,6 +13,12 @@ export const terrainTypes = [
 
 // Helper to get terrain types with resolved image paths for a given style
 export const getTerrainTypesForStyle = (style) => {
+  if (style === 'none') {
+    return terrainTypes.map(terrain => ({
+      ...terrain,
+      image: null
+    }));
+  }
   return terrainTypes.map(terrain => ({
     ...terrain,
     image: terrain.image ? `/terrain/${style}/${terrain.image}` : null

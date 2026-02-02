@@ -28,6 +28,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const [mythsCount, setMythsCount] = useState(6);
   const [useQuickStartMyths, setUseQuickStartMyths] = useState(false);
   const [terrainStyle, setTerrainStyle] = useState("watercolour");
+  const [showNames, setShowNames] = useState(true);
 
   const styledTerrainTypes = getTerrainTypesForStyle(terrainStyle);
 
@@ -337,6 +338,9 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   };
 
   const handleGenerateGMPDF = async () => {
+    setSelectedHex(null);
+    // Allow state to update before capturing
+    await new Promise(resolve => setTimeout(resolve, 0));
     await generateGMPDF({
       mapContainer: hexMapRef.current,
       realm
@@ -344,6 +348,9 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   };
 
   const handleGeneratePlayerPDF = async () => {
+    setSelectedHex(null);
+    // Allow state to update before capturing
+    await new Promise(resolve => setTimeout(resolve, 0));
     await generatePlayerPDF({
       mapContainer: hexMapRef.current,
       realm
@@ -422,6 +429,8 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
               onStopPainting={stopPainting}
               terrainStyle={terrainStyle}
               onTerrainStyleChange={setTerrainStyle}
+              showNames={showNames}
+              onShowNamesChange={setShowNames}
             />
           </div>
 
@@ -439,6 +448,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
               onHexMouseUp={handleHexMouseUp}
               terrainTypes={styledTerrainTypes}
               terrainStyle={terrainStyle}
+              showNames={showNames}
             />
           </div>
 

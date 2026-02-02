@@ -1,7 +1,7 @@
 import HexTile from "./HexTile";
 import { hexUtils } from "../../utils/hexUtils";
 
-const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, terrainStyle }) => {
+const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, terrainStyle, showNames }) => {
   const holdings = realm.getHoldings();
   const landmarks = realm.getLandmarks();
   const myths = realm.getMyths();
@@ -112,6 +112,8 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
                 holdingRef={holdingRef}
                 landmarkRef={landmarkRef}
                 mythRef={mythRef}
+                terrainTypes={terrainTypes}
+                showNames={showNames}
               />
             );
           })
@@ -187,6 +189,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
         </g>
 
         {/* Feature name labels - rendered on top of everything */}
+        {showNames && (
         <g className="feature-name-labels pointer-events-none">
           {holdings.map((holding, index) => {
             const { x, y } = hexUtils.hexToWorld(holding.row, holding.col, hexSize);
@@ -276,6 +279,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
             );
           })}
         </g>
+        )}
       </svg>
     </div>
   );
