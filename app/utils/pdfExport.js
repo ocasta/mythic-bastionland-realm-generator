@@ -125,33 +125,23 @@ async function svgToCanvas(svgElement, { hideLabels = false } = {}) {
  * @param {Object} options.realm - The realm object with holdings, landmarks, myths
  */
 export async function generateGMPDF({ mapContainer, realm }) {
-  const pdf = new jsPDF('portrait', 'mm', 'a4');
+  const pdf = new jsPDF('landscape', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 10;
-  const contentWidth = pageWidth - margin * 2;
 
-  // Title
+  // Title centered at top
   pdf.setFontSize(16);
   pdf.setFont('helvetica', 'bold');
   pdf.text(realm.name || 'Unnamed Realm', pageWidth / 2, margin + 5, { align: 'center' });
 
-  let yPosition = margin + 12;
+  const contentTop = margin + 12;
+  const contentHeight = pageHeight - contentTop - margin;
 
-  // Count total resource items to estimate space needed
-  const holdingsCount = realm.holdings?.length || 0;
-  const landmarksCount = realm.landmarks?.length || 0;
-  const mythsCount = realm.myths?.length || 0;
-  const totalResources = holdingsCount + landmarksCount + mythsCount;
-
-  // Estimate space needed for resources (header + items per section)
-  const lineHeight = 4.5;
-  const sectionHeaderHeight = 5;
-  const sectionsCount = (holdingsCount > 0 ? 1 : 0) + (landmarksCount > 0 ? 1 : 0) + (mythsCount > 0 ? 1 : 0);
-  const resourcesHeight = (totalResources * lineHeight) + (sectionsCount * sectionHeaderHeight) + 10;
-
-  // Calculate available space for map
-  const availableMapHeight = pageHeight - yPosition - margin - resourcesHeight;
+  // Split page: map on left (75%), resources on right (25%)
+  const mapWidth = (pageWidth - margin * 3) * 0.75;
+  const resourcesX = margin + mapWidth + margin;
+  const resourcesWidth = pageWidth - resourcesX - margin;
 
   // Capture the hex map SVG as an image
   if (mapContainer) {
@@ -163,26 +153,25 @@ export async function generateGMPDF({ mapContainer, realm }) {
         const imgAspectRatio = canvas.width / canvas.height;
 
         // Calculate image dimensions to fit available space
-        let imgWidth = contentWidth;
+        let imgWidth = mapWidth;
         let imgHeight = imgWidth / imgAspectRatio;
 
-        if (imgHeight > availableMapHeight) {
-          imgHeight = availableMapHeight;
+        if (imgHeight > contentHeight) {
+          imgHeight = contentHeight;
           imgWidth = imgHeight * imgAspectRatio;
         }
 
-        const xOffset = (pageWidth - imgWidth) / 2;
-        pdf.addImage(imgData, 'PNG', xOffset, yPosition, imgWidth, imgHeight);
-        yPosition += imgHeight + 5;
+        // Center map vertically in left section
+        const yOffset = contentTop + (contentHeight - imgHeight) / 2;
+        pdf.addImage(imgData, 'PNG', margin, yOffset, imgWidth, imgHeight);
       } catch (error) {
         console.error('Error capturing hex map:', error);
-        yPosition += 5;
       }
     }
   }
 
-  // Add Resources section
-  addResourcesSectionCompact(pdf, realm, yPosition, margin, contentWidth);
+  // Add Resources section on the right
+  addResourcesSectionCompact(pdf, realm, contentTop, resourcesX, resourcesWidth);
 
   // Open PDF in new window
   const pdfBlob = pdf.output('blob');
@@ -283,7 +272,7 @@ function addResourcesSectionCompact(pdf, realm, startY, margin, contentWidth) {
  * @param {Object} options.realm - The realm object (used for name only)
  */
 export async function generatePlayerPDF({ mapContainer, realm }) {
-  const pdf = new jsPDF('portrait', 'mm', 'a4');
+  const pdf = new jsPDF('landscape', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 10;
@@ -294,10 +283,8 @@ export async function generatePlayerPDF({ mapContainer, realm }) {
   pdf.setFont('helvetica', 'bold');
   pdf.text(realm.name || 'Unnamed Realm', pageWidth / 2, margin + 5, { align: 'center' });
 
-  let yPosition = margin + 12;
-
-  // Calculate available space for map (full page minus title and margins)
-  const availableMapHeight = pageHeight - yPosition - margin;
+  const contentTop = margin + 12;
+  const contentHeight = pageHeight - contentTop - margin;
 
   // Capture the hex map SVG as an image (without labels)
   if (mapContainer) {
@@ -312,13 +299,15 @@ export async function generatePlayerPDF({ mapContainer, realm }) {
         let imgWidth = contentWidth;
         let imgHeight = imgWidth / imgAspectRatio;
 
-        if (imgHeight > availableMapHeight) {
-          imgHeight = availableMapHeight;
+        if (imgHeight > contentHeight) {
+          imgHeight = contentHeight;
           imgWidth = imgHeight * imgAspectRatio;
         }
 
+        // Center the map
         const xOffset = (pageWidth - imgWidth) / 2;
-        pdf.addImage(imgData, 'PNG', xOffset, yPosition, imgWidth, imgHeight);
+        const yOffset = contentTop + (contentHeight - imgHeight) / 2;
+        pdf.addImage(imgData, 'PNG', xOffset, yOffset, imgWidth, imgHeight);
       } catch (error) {
         console.error('Error capturing hex map:', error);
       }
