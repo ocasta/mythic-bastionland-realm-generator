@@ -1,5 +1,5 @@
 import { terrainTypes } from "./hexUtils";
-import { Realm } from "./realmModel";
+import { Realm, River } from "./realmModel";
 
 export const exportRealm = (realm) => {
   // Sanitize realm name for filename
@@ -16,7 +16,9 @@ export const exportRealm = (realm) => {
     holdings: realm.holdings || [],
     landmarks: realm.landmarks || [],
     myths: realm.myths || [],
-    barriers: realm.barriers || []
+    barriers: realm.barriers || [],
+    rivers: (realm.rivers || []).map(r => r.toJSON ? r.toJSON() : r),
+    nextRiverId: realm.nextRiverId || 1
   };
 
   // Export all terrain data
@@ -109,7 +111,11 @@ const validateRealmData = (data) => {
   if (data.barriers && !Array.isArray(data.barriers)) {
     return false;
   }
-  
+
+  if (data.rivers && !Array.isArray(data.rivers)) {
+    return false;
+  }
+
   return true;
 };
 
@@ -164,6 +170,12 @@ const createRealmFromImportData = (data) => {
       side: barrier.side
     }));
   }
-  
+
+  // Import rivers
+  if (data.rivers) {
+    realm.rivers = data.rivers.map(river => River.fromJSON(river));
+    realm.nextRiverId = data.nextRiverId || (realm.rivers.length + 1);
+  }
+
   return realm;
 };
