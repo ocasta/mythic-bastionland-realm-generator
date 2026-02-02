@@ -156,7 +156,7 @@ function calculateWaterEdgePoint(fromPoint, toPoint, hexSize) {
 
 /**
  * Processes a river path to stop at water hex edges
- * @param {Array} path - Original path array
+ * @param {Array} path - Original path array (supports center and corner points)
  * @param {Object} realm - The realm object
  * @param {number} hexSize - Size of hex tiles
  * @returns {Array} Processed path with world coordinates, truncated at water
@@ -168,9 +168,9 @@ function processPathForWater(path, realm, hexSize) {
 
   for (let i = 0; i < path.length; i++) {
     const point = path[i];
-    const worldPoint = hexUtils.hexToWorld(point.row, point.col, hexSize);
+    const worldPoint = hexUtils.pointToWorld(point, hexSize);
 
-    // Check if this hex is water
+    // Check if this hex is water (only applies to center points or the hex containing a corner)
     if (isWaterHex(realm, point.row, point.col)) {
       // This is a water hex - calculate edge point and stop
       if (processedPoints.length > 0) {
@@ -188,8 +188,8 @@ function processPathForWater(path, realm, hexSize) {
 }
 
 /**
- * Generates a smooth SVG path through hex centers using quadratic bezier curves
- * @param {Array} path - Array of {row, col} points
+ * Generates a smooth SVG path through hex centers/corners using quadratic bezier curves
+ * @param {Array} path - Array of {row, col, corner?} points
  * @param {number} hexSize - Size of hex tiles
  * @param {Object} realm - The realm object (optional, for water detection)
  * @returns {string} SVG path d attribute
@@ -197,14 +197,14 @@ function processPathForWater(path, realm, hexSize) {
 function generateSmoothPath(path, hexSize, realm = null) {
   if (path.length === 0) return "";
   if (path.length === 1) {
-    const { x, y } = hexUtils.hexToWorld(path[0].row, path[0].col, hexSize);
+    const { x, y } = hexUtils.pointToWorld(path[0], hexSize);
     return `M ${x} ${y}`;
   }
 
   // Process path for water hexes if realm is provided
   const points = realm
     ? processPathForWater(path, realm, hexSize)
-    : path.map((p) => hexUtils.hexToWorld(p.row, p.col, hexSize));
+    : path.map((p) => hexUtils.pointToWorld(p, hexSize));
 
   if (points.length === 0) return "";
   if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
@@ -244,7 +244,7 @@ function generateSmoothPath(path, hexSize, realm = null) {
 
 /**
  * Generates multiple path segments with varying widths, stopping at water hexes
- * @param {Array} path - Array of {row, col} points
+ * @param {Array} path - Array of {row, col, corner?} points
  * @param {Array} widths - Width at each point
  * @param {number} hexSize - Size of hex tiles
  * @param {Object} realm - The realm object (for water detection)
@@ -265,8 +265,8 @@ function generateWidthSegments(path, widths, hexSize, realm = null) {
         endIndex = i;
         // Calculate edge point if we have a previous point
         if (i > 0) {
-          const prevWorld = hexUtils.hexToWorld(path[i - 1].row, path[i - 1].col, hexSize);
-          const waterWorld = hexUtils.hexToWorld(path[i].row, path[i].col, hexSize);
+          const prevWorld = hexUtils.pointToWorld(path[i - 1], hexSize);
+          const waterWorld = hexUtils.pointToWorld(path[i], hexSize);
           waterEdgePoint = calculateWaterEdgePoint(prevWorld, waterWorld, hexSize);
         }
         break;
@@ -277,7 +277,7 @@ function generateWidthSegments(path, widths, hexSize, realm = null) {
   // Convert path points to world coordinates (up to water)
   const points = [];
   for (let i = 0; i < endIndex; i++) {
-    points.push(hexUtils.hexToWorld(path[i].row, path[i].col, hexSize));
+    points.push(hexUtils.pointToWorld(path[i], hexSize));
   }
 
   // Add water edge point if we hit water
@@ -296,7 +296,10 @@ function generateWidthSegments(path, widths, hexSize, realm = null) {
 
     // Generate smooth path for this segment considering adjacent points
     let d;
-    if (i === 0) {
+    if (points.length === 2) {
+      // Special case: only 2 points, draw complete line
+      d = `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+    } else if (i === 0) {
       // First segment: simple line to midpoint
       const midX = (points[i].x + points[i + 1].x) / 2;
       const midY = (points[i].y + points[i + 1].y) / 2;
@@ -342,9 +345,9 @@ const RiverPaths = ({
 
   return (
     <g className="river-paths">
-      {/* SVG filters for watercolour style */}
+      {/* SVG filters for watercolour style - use userSpaceOnUse to avoid zero bounding box issues */}
       <defs>
-        <filter id="riverBlur" x="-50%" y="-50%" width="200%" height="200%">
+        <filter id="riverBlur" filterUnits="userSpaceOnUse" x="0" y="0" width="2000" height="2000">
           <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" />
         </filter>
       </defs>
@@ -429,16 +432,38 @@ const RiverPaths = ({
             strokeDasharray="4 2"
             opacity={0.7}
           />
-          {/* Markers at each point */}
+          {/* Markers at each point - circles for centers, squares for corners */}
           {currentRiverPath.map((point, idx) => {
-            const { x, y } = hexUtils.hexToWorld(point.row, point.col, hexSize);
+            const { x, y } = hexUtils.pointToWorld(point, hexSize);
+            const isCorner = point.corner !== undefined && point.corner !== null;
+            const fillColor = idx === 0 ? "#2563eb" : "#4a90d9";
+
+            if (isCorner) {
+              // Square marker for corner points
+              const size = 6;
+              return (
+                <rect
+                  key={`preview-point-${idx}`}
+                  x={x - size / 2}
+                  y={y - size / 2}
+                  width={size}
+                  height={size}
+                  fill={fillColor}
+                  stroke="white"
+                  strokeWidth={1}
+                  transform={`rotate(45, ${x}, ${y})`}
+                />
+              );
+            }
+
+            // Circle marker for center points
             return (
               <circle
                 key={`preview-point-${idx}`}
                 cx={x}
                 cy={y}
                 r={4}
-                fill={idx === 0 ? "#2563eb" : "#4a90d9"}
+                fill={fillColor}
                 stroke="white"
                 strokeWidth={1}
               />

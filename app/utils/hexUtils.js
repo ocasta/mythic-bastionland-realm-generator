@@ -142,6 +142,118 @@ export const hexUtils = {
     );
   },
 
+  /**
+   * Get pixel coordinates for a hex corner
+   * @param {number} row - Hex row
+   * @param {number} col - Hex column
+   * @param {number} cornerIndex - Corner index (0-5): 0=top, 1=top-right, 2=bottom-right, 3=bottom, 4=bottom-left, 5=top-left
+   * @param {number} hexSize - Hex radius
+   * @returns {{x: number, y: number}} Pixel coordinates
+   */
+  hexCornerToWorld: (row, col, cornerIndex, hexSize = hexConfig.defaultSize) => {
+    const center = hexUtils.hexToWorld(row, col, hexSize);
+    const angle = (cornerIndex * Math.PI) / 3 - Math.PI / 2; // Match generateHexPath angles
+    return {
+      x: center.x + hexSize * Math.cos(angle),
+      y: center.y + hexSize * Math.sin(angle),
+    };
+  },
+
+  /**
+   * Convert a river point (center or corner) to pixel coordinates
+   * @param {Object} point - Point with row, col, and optional corner
+   * @param {number} hexSize - Hex radius
+   * @returns {{x: number, y: number}} Pixel coordinates
+   */
+  pointToWorld: (point, hexSize = hexConfig.defaultSize) => {
+    if (point.corner !== undefined && point.corner !== null) {
+      return hexUtils.hexCornerToWorld(point.row, point.col, point.corner, hexSize);
+    }
+    return hexUtils.hexToWorld(point.row, point.col, hexSize);
+  },
+
+  /**
+   * Check if two river points are adjacent
+   * @param {Object} p1 - First point {row, col, corner?}
+   * @param {Object} p2 - Second point {row, col, corner?}
+   * @param {number} maxRows - Grid row count
+   * @param {number} maxCols - Grid column count
+   * @returns {boolean} True if points are adjacent
+   */
+  arePointsAdjacent: (p1, p2, maxRows, maxCols) => {
+    const p1IsCorner = p1.corner !== undefined && p1.corner !== null;
+    const p2IsCorner = p2.corner !== undefined && p2.corner !== null;
+
+    // Case 1: Both are centers - use existing neighbor logic
+    if (!p1IsCorner && !p2IsCorner) {
+      const neighbors = hexUtils.getNeighbors(p1.row, p1.col, maxRows, maxCols);
+      return neighbors.some(n => n.row === p2.row && n.col === p2.col);
+    }
+
+    // Case 2: Center to corner - corner must be close to center (same hex or neighbor)
+    if (!p1IsCorner && p2IsCorner) {
+      // Same hex - always adjacent
+      if (p1.row === p2.row && p1.col === p2.col) return true;
+      // Check if corner is close to center (corners are shared by up to 3 hexes)
+      const center = hexUtils.hexToWorld(p1.row, p1.col);
+      const corner = hexUtils.hexCornerToWorld(p2.row, p2.col, p2.corner);
+      const dx = center.x - corner.x;
+      const dy = center.y - corner.y;
+      const distSq = dx * dx + dy * dy;
+      // Corner should be within hex radius to be reachable
+      const maxDistSq = hexConfig.defaultSize * hexConfig.defaultSize * 1.1; // slight tolerance
+      return distSq <= maxDistSq;
+    }
+
+    // Case 3: Corner to center - center must be reachable from corner
+    if (p1IsCorner && !p2IsCorner) {
+      // Same hex - always adjacent
+      if (p1.row === p2.row && p1.col === p2.col) return true;
+      // Check if center is close to corner (corners are shared by up to 3 hexes)
+      const corner = hexUtils.hexCornerToWorld(p1.row, p1.col, p1.corner);
+      const center = hexUtils.hexToWorld(p2.row, p2.col);
+      const dx = corner.x - center.x;
+      const dy = corner.y - center.y;
+      const distSq = dx * dx + dy * dy;
+      // Center should be within hex radius of corner to be reachable
+      const maxDistSq = hexConfig.defaultSize * hexConfig.defaultSize * 1.1; // slight tolerance
+      return distSq <= maxDistSq;
+    }
+
+    // Case 4: Both are corners
+    // Adjacent if: same hex with adjacent corner indices, OR shared/adjacent corners between hexes
+    if (p1.row === p2.row && p1.col === p2.col) {
+      // Same hex - corners must be adjacent (differ by 1, with wraparound)
+      const diff = Math.abs(p1.corner - p2.corner);
+      return diff === 1 || diff === 5;
+    }
+
+    // Different hexes - check physical distance between corners
+    const corner1 = hexUtils.hexCornerToWorld(p1.row, p1.col, p1.corner);
+    const corner2 = hexUtils.hexCornerToWorld(p2.row, p2.col, p2.corner);
+    const dx = corner1.x - corner2.x;
+    const dy = corner1.y - corner2.y;
+    const distSq = dx * dx + dy * dy;
+
+    // Same physical corner (within tolerance)
+    if (distSq < 1) return true;
+
+    // Adjacent corners on shared edge - check distance equals one edge length
+    // Edge length = hexSize for regular hexagon
+    const edgeLengthSq = hexConfig.defaultSize * hexConfig.defaultSize;
+    return Math.abs(distSq - edgeLengthSq) < 10;
+  },
+
+  /**
+   * Get the 6 corners that belong to a hex
+   * @param {number} row - Hex row
+   * @param {number} col - Hex column
+   * @returns {Array} Array of {row, col, corner} objects
+   */
+  getHexCorners: (row, col) => {
+    return [0, 1, 2, 3, 4, 5].map(corner => ({ row, col, corner }));
+  },
+
   exportGrid: (hexData) => {
     return JSON.stringify(hexData, null, 2);
   },

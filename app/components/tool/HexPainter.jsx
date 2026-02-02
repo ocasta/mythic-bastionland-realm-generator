@@ -83,7 +83,7 @@ const HexPainter = ({ terrainTypes, paintingMode, selectedTerrainType, onStartPa
           <div className="space-y-2">
             <div className="p-2 bg-cyan-50 dark:bg-cyan-900 rounded text-sm text-cyan-700 dark:text-cyan-300">
               <p className="font-medium">River Drawing Mode</p>
-              <p>Click hexes to trace the river path</p>
+              <p>Click hexes or corners to trace the river path</p>
               <p className="text-xs mt-1 opacity-75">
                 {currentRiverPath.length === 0
                   ? 'Click to set river source'
