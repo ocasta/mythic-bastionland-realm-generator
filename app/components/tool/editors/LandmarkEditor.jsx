@@ -1,6 +1,12 @@
 import { landmarkTypes } from '../../../utils/realmModel';
+import { pickRandomLandmark, pickRandomSeer } from '../../../utils/realmGenerator';
 
 const LandmarkEditor = ({ landmark, selectedHex, onUpdate, onRemove }) => {
+  const handleTypeChange = (newType) => {
+    const newName = pickRandomLandmark(newType);
+    const newSeer = newType === 'Sanctum' ? pickRandomSeer() : null;
+    onUpdate(selectedHex.row, selectedHex.col, newType, newName, newSeer);
+  };
   return (
     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
       <div className="flex items-center justify-between mb-2">
@@ -21,14 +27,7 @@ const LandmarkEditor = ({ landmark, selectedHex, onUpdate, onRemove }) => {
           </label>
           <select
             value={landmark.type}
-            onChange={(e) =>
-              onUpdate(
-                selectedHex.row,
-                selectedHex.col,
-                e.target.value,
-                landmark.name
-              )
-            }
+            onChange={(e) => handleTypeChange(e.target.value)}
             className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           >
             {landmarkTypes.map((type) => (

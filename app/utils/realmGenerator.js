@@ -39,7 +39,22 @@ const holdingFeatures = [
   "Spire", "Dome", "Beacons", "Bridge", "Pillars", "Moat"
 ];
 
-export function generateHoldingName() {
+const seatOfPowerFeatures = [
+  "Hearth", "Throne", "Musicians", "Pool", "Advisers", "Servants",
+  "Shrine", "Table", "Reliquary", "Cauldron", "Chandelier", "Guards"
+];
+
+const seatOfPowerDecorations = [
+  "Antlers", "Silver", "Heraldry", "Bones", "Flowers", "Scripture",
+  "Jewels", "Wreaths", "Candles", "Fur", "Tapestries", "Shields"
+];
+
+export function generateHoldingName(isSeatOfPower = false) {
+  if (isSeatOfPower) {
+    const featureRoll = Math.floor(Math.random() * 12);
+    const decorationRoll = Math.floor(Math.random() * 12);
+    return `${seatOfPowerFeatures[featureRoll]} of ${seatOfPowerDecorations[decorationRoll]}`;
+  }
   const styleRoll = Math.floor(Math.random() * 12);
   const featureRoll = Math.floor(Math.random() * 12);
   return `${holdingStyles[styleRoll]} ${holdingFeatures[featureRoll]}`;
@@ -251,7 +266,7 @@ export class RealmGenerator {
       const position = this.findValidPosition(realm, this.isValidHoldingPosition.bind(this));
       if (position) {
         const isSeatOfPower = i === 0;
-        realm.addHolding(position.row, position.col, isSeatOfPower, generateHoldingName());
+        realm.addHolding(position.row, position.col, isSeatOfPower, generateHoldingName(isSeatOfPower));
       } else {
         console.warn(`Could not place holding ${i + 1} due to placement constraints`);
       }
