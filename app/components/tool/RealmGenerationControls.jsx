@@ -1,31 +1,5 @@
 import { useRef, useState } from 'react';
-
-const NumberStepper = ({ value, min, max, onChange }) => (
-  <div className="flex items-center">
-    <button
-      onClick={() => onChange(value - 1)}
-      disabled={value <= min}
-      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-l border border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      -
-    </button>
-    <input
-      type="number"
-      value={value}
-      onChange={(e) => onChange(Number(e.target.value))}
-      min={min}
-      max={max}
-      className="w-12 px-1 py-1 text-center border-t border-b border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-    />
-    <button
-      onClick={() => onChange(value + 1)}
-      disabled={value >= max}
-      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-r border border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      +
-    </button>
-  </div>
-);
+import NumberStepper from '../ui/NumberStepper';
 
 const RealmGenerationControls = ({
   rows,
@@ -48,7 +22,8 @@ const RealmGenerationControls = ({
   onExport,
   onImport,
   onGenerateGMPDF,
-  onGeneratePlayerPDF
+  onGeneratePlayerPDF,
+  isGeneratingPDF = false
 }) => {
   const fileInputRef = useRef(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -226,17 +201,27 @@ const RealmGenerationControls = ({
         </button>
         <button
           onClick={onGenerateGMPDF}
-          className="px-3 py-1 bg-rose-600 text-white rounded hover:bg-rose-700"
+          disabled={isGeneratingPDF}
+          className={`px-3 py-1 text-white rounded ${
+            isGeneratingPDF
+              ? 'bg-rose-400 cursor-wait'
+              : 'bg-rose-600 hover:bg-rose-700'
+          }`}
           title="Export PDF with labels and resources list"
         >
-          Export GM's PDF
+          {isGeneratingPDF ? 'Generating...' : "Export GM's PDF"}
         </button>
         <button
           onClick={onGeneratePlayerPDF}
-          className="px-3 py-1 bg-amber-600 text-white rounded hover:bg-amber-700"
+          disabled={isGeneratingPDF}
+          className={`px-3 py-1 text-white rounded ${
+            isGeneratingPDF
+              ? 'bg-amber-400 cursor-wait'
+              : 'bg-amber-600 hover:bg-amber-700'
+          }`}
           title="Export PDF with map only (no labels)"
         >
-          Export Player's PDF
+          {isGeneratingPDF ? 'Generating...' : "Export Player's PDF"}
         </button>
         <input
           ref={fileInputRef}

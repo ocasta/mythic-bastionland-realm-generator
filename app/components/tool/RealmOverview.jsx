@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getFeatureLabelAtPosition } from '../../utils/featureLabels';
 
 const RealmOverview = ({ realm }) => {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -6,25 +7,6 @@ const RealmOverview = ({ realm }) => {
   const holdings = realm.getHoldings();
   const landmarks = realm.getLandmarks();
   const myths = realm.getMyths();
-
-  // Helper to get reference label for a hex
-  const getRef = (row, col) => {
-    const holding = holdings.find(h => h.row === row && h.col === col);
-    if (holding) {
-      if (holding.isSeatOfPower) return 'S';
-      const nonSeatHoldings = holdings.filter(h => !h.isSeatOfPower);
-      const holdingIndex = nonSeatHoldings.findIndex(h => h.row === row && h.col === col);
-      if (holdingIndex >= 0) return `H${holdingIndex + 1}`;
-    }
-
-    const landmarkIndex = landmarks.findIndex(l => l.row === row && l.col === col);
-    if (landmarkIndex >= 0) return `L${landmarkIndex + 1}`;
-
-    const mythIndex = myths.findIndex(m => m.row === row && m.col === col);
-    if (mythIndex >= 0) return `M${mythIndex + 1}`;
-
-    return null;
-  };
 
   // Create a grid to display all hexes with their contents
   const createHexGrid = () => {
@@ -45,7 +27,7 @@ const RealmOverview = ({ realm }) => {
             holding,
             landmark,
             myth,
-            ref: getRef(row, col)
+            ref: getFeatureLabelAtPosition(row, col, realm)
           });
         }
       }

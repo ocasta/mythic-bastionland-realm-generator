@@ -51,6 +51,20 @@ export const hexConfig = {
   },
 };
 
+/**
+ * Iterates over all hexes in a grid, calling the callback for each hex.
+ * @param {number} rows - Number of rows in the grid
+ * @param {number} cols - Number of columns in the grid
+ * @param {Function} callback - Function to call with (row, col) for each hex
+ */
+export function forEachHex(rows, cols, callback) {
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      callback(row, col);
+    }
+  }
+}
+
 export const hexUtils = {
   hexToWorld: (row, col, hexSize = hexConfig.defaultSize) => {
     const xSpacing = hexConfig.getXSpacing(hexSize);

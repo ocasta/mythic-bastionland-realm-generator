@@ -33,10 +33,22 @@ root.jsx (Layout)
 └── home.jsx (Route)
     └── RealmGenerator.jsx (Main State Container)
         ├── RealmGenerationControls
+        │   └── NumberStepper (ui/)
         ├── TerrainLegend / TerrainStatistics
+        │   └── TerrainSwatch
         ├── HexPainter (terrain selection sidebar)
-        ├── HexMap → HexTile[] (SVG visualization)
+        │   └── TerrainSwatch
+        ├── HexMap (SVG visualization)
+        │   ├── TerrainPatterns (svg/)
+        │   ├── HexTile[]
+        │   │   └── FeatureMarker
+        │   └── FeatureNameLabels (svg/)
         ├── HexDetails (editing panel)
+        │   ├── TerrainSelector (editors/)
+        │   ├── HoldingEditor (editors/)
+        │   ├── LandmarkEditor (editors/)
+        │   ├── MythEditor (editors/)
+        │   └── BarrierManager (editors/)
         ├── RealmOverview (table summary)
         └── RealmResources (reference labels list)
 ```
@@ -44,8 +56,17 @@ root.jsx (Layout)
 ### Key Directories
 
 - `app/components/tool/` - Interactive UI components (HexMap, HexTile, HexPainter, HexDetails, etc.)
+- `app/components/tool/editors/` - Feature editing subcomponents (TerrainSelector, HoldingEditor, etc.)
+- `app/components/tool/svg/` - SVG-specific components (TerrainPatterns, FeatureNameLabels)
+- `app/components/ui/` - Reusable UI primitives (NumberStepper)
 - `app/utils/` - Core logic: hex math, data models, generation algorithms, export
 - `app/data/` - JSON lookup tables for landmarks, myths, seers
+
+### Reusable Components
+
+- `TerrainSwatch` - Displays terrain color/image with configurable size (sm/md/lg)
+- `FeatureMarker` - SVG circle+text for holdings, landmarks, myths on hex tiles
+- `NumberStepper` - Increment/decrement input for numeric values
 
 ### Data Model (`app/utils/realmModel.js`)
 
@@ -62,10 +83,21 @@ root.jsx (Layout)
 - Cube coordinate conversion for distance calculations
 - SVG path generation for rendering
 - Neighbor detection handles even/odd row adjacency
+- `forEachHex(rows, cols, callback)` - Grid iteration utility
+
+### Feature Labels (`app/utils/featureLabels.js`)
+
+Utility functions for generating reference labels consistently across components:
+- `getHoldingLabel(holding, allHoldings)` - Returns 'S' or 'H1', 'H2', etc.
+- `getLandmarkLabel(landmark, allLandmarks)` - Returns 'L1', 'L2', etc.
+- `getMythLabel(myth, allMyths)` - Returns 'M1', 'M2', etc.
+- `getFeatureLabelAtPosition(row, col, realm)` - Get label for any feature at position
 
 ### Terrain Generation (`app/utils/realmGenerator.js`)
 
 Four algorithms: Random, Balanced, Clustered (BFS growth), Weighted (custom probabilities).
+
+Uses `createRandomPicker(pool)` factory to avoid duplicate selections until pool is exhausted.
 
 Placement constraints:
 - Holdings: 3+ hex distance apart
@@ -78,7 +110,15 @@ State lives in `RealmGenerator.jsx`. Changes create new Realm copies (immutable 
 
 ### PDF Export (`app/utils/pdfExport.js`)
 
-Generates landscape A4 PDFs. GM PDF has hex map on left, resources list on right. Player PDF has centered map without labels. Uses custom SVG-to-canvas conversion to handle terrain pattern images. Opens PDF in new browser window.
+Generates landscape A4 PDFs. GM PDF has hex map on left, resources list on right. Player PDF has centered map without labels.
+
+Key functions:
+- `cloneSVGForExport()` - Prepares SVG for rendering, optionally hiding labels
+- `inlineImages()` - Converts image URLs to data URLs for export
+- `renderSVGToCanvas()` - Renders prepared SVG to canvas
+- `addFeatureSection()` - Reusable PDF section renderer for holdings/landmarks/myths
+
+Styling constants in `PDF_STYLES` object for consistent formatting.
 
 ### Reference Label Colors
 

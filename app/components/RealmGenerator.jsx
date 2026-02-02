@@ -31,6 +31,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const [showNames, setShowNames] = useState(true);
   const [draggingFeature, setDraggingFeature] = useState(null);
   // Shape: { type: 'holding'|'landmark'|'myth', row: number, col: number }
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const styledTerrainTypes = getTerrainTypesForStyle(terrainStyle);
 
@@ -401,22 +402,36 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
 
   const handleGenerateGMPDF = async () => {
     setSelectedHex(null);
-    // Allow state to update before capturing
-    await new Promise(resolve => setTimeout(resolve, 0));
-    await generateGMPDF({
-      mapContainer: hexMapRef.current,
-      realm
-    });
+    setIsGeneratingPDF(true);
+    document.body.style.cursor = 'wait';
+    try {
+      // Allow state to update before capturing
+      await new Promise(resolve => setTimeout(resolve, 0));
+      await generateGMPDF({
+        mapContainer: hexMapRef.current,
+        realm
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+      document.body.style.cursor = '';
+    }
   };
 
   const handleGeneratePlayerPDF = async () => {
     setSelectedHex(null);
-    // Allow state to update before capturing
-    await new Promise(resolve => setTimeout(resolve, 0));
-    await generatePlayerPDF({
-      mapContainer: hexMapRef.current,
-      realm
-    });
+    setIsGeneratingPDF(true);
+    document.body.style.cursor = 'wait';
+    try {
+      // Allow state to update before capturing
+      await new Promise(resolve => setTimeout(resolve, 0));
+      await generatePlayerPDF({
+        mapContainer: hexMapRef.current,
+        realm
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+      document.body.style.cursor = '';
+    }
   };
 
   const handleGlobalMouseUp = () => {
@@ -475,6 +490,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
             onImport={handleImportRealm}
             onGenerateGMPDF={handleGenerateGMPDF}
             onGeneratePlayerPDF={handleGeneratePlayerPDF}
+            isGeneratingPDF={isGeneratingPDF}
           />
 
           <div className="legend flex flex-wrap gap-2 mb-4">

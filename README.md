@@ -134,17 +134,32 @@ docker run -p 3000:3000 mythic-realm-maker
 mythic-bastioland-realm-maker/
 ├── app/
 │   ├── components/
-│   │   ├── RealmGenerator.jsx      # Main application component
-│   │   └── tool/                   # UI components
-│   │       ├── HexMap.jsx         # Interactive hex grid
-│   │       ├── HexDetails.jsx     # Hex editing interface
-│   │       ├── HexPainter.jsx     # Terrain painting tool
-│   │       └── ...
+│   │   ├── RealmGenerator.jsx        # Main application component
+│   │   ├── ui/                       # Reusable UI primitives
+│   │   │   └── NumberStepper.jsx     # Increment/decrement input
+│   │   └── tool/                     # Feature-specific components
+│   │       ├── HexMap.jsx            # Interactive hex grid
+│   │       ├── HexTile.jsx           # Individual hex rendering
+│   │       ├── HexDetails.jsx        # Hex editing interface
+│   │       ├── HexPainter.jsx        # Terrain painting tool
+│   │       ├── TerrainSwatch.jsx     # Terrain color/image display
+│   │       ├── FeatureMarker.jsx     # SVG marker for features
+│   │       ├── editors/              # Feature editing subcomponents
+│   │       │   ├── TerrainSelector.jsx
+│   │       │   ├── HoldingEditor.jsx
+│   │       │   ├── LandmarkEditor.jsx
+│   │       │   ├── MythEditor.jsx
+│   │       │   └── BarrierManager.jsx
+│   │       └── svg/                  # SVG-specific components
+│   │           ├── TerrainPatterns.jsx
+│   │           └── FeatureNameLabels.jsx
 │   ├── utils/
-│   │   ├── realmModel.js          # Core data models
-│   │   ├── realmGenerator.js      # Generation algorithms
-│   │   ├── hexUtils.js            # Hex grid mathematics
-│   │   └── pdfExport.js           # PDF generation
+│   │   ├── realmModel.js             # Core data models
+│   │   ├── realmGenerator.js         # Generation algorithms
+│   │   ├── hexUtils.js               # Hex grid mathematics
+│   │   ├── featureLabels.js          # Reference label utilities
+│   │   └── pdfExport.js              # PDF generation
+│   ├── data/                         # JSON lookup tables
 │   └── routes/
 ├── public/
 └── Docker configuration
@@ -165,9 +180,11 @@ mythic-bastioland-realm-maker/
 The codebase is designed for easy extension:
 
 - **New Terrain Types**: Add to `terrainTypes` in `hexUtils.js`
-- **Generation Algorithms**: Extend `TerrainGenerator` class
-- **UI Components**: Add to `app/components/tool/`
+- **Generation Algorithms**: Extend `TerrainGenerator` class in `realmGenerator.js`
+- **UI Components**: Add to `app/components/tool/` (or `editors/` for feature editors, `svg/` for SVG components)
+- **Reusable Primitives**: Add to `app/components/ui/`
 - **Data Models**: Extend classes in `realmModel.js`
+- **Reference Labels**: Use utilities from `featureLabels.js` for consistent labeling
 
 ---
 

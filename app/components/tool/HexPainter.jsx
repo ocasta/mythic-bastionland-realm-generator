@@ -1,3 +1,5 @@
+import TerrainSwatch from './TerrainSwatch';
+
 const HexPainter = ({ terrainTypes, paintingMode, selectedTerrainType, onStartPainting, onStopPainting, terrainStyle, onTerrainStyleChange, showNames, onShowNamesChange }) => {
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-4 h-fit">
@@ -32,20 +34,12 @@ const HexPainter = ({ terrainTypes, paintingMode, selectedTerrainType, onStartPa
             }}
           >
             <span className="inline-flex items-center gap-2">
-              <span
-                className="w-4 h-4 border border-gray-300 dark:border-gray-600"
-                style={{
-                  backgroundColor: terrain.color,
-                  backgroundImage: terrain.image ? `url(${terrain.image})` : "none",
-                  backgroundSize: "cover",
-                  backgroundPosition: "center"
-                }}
-              ></span>
+              <TerrainSwatch terrain={terrain} size="md" />
               {terrain.name}
             </span>
           </button>
         ))}
-        
+
         {paintingMode && (
           <button
             onClick={onStopPainting}
@@ -55,7 +49,7 @@ const HexPainter = ({ terrainTypes, paintingMode, selectedTerrainType, onStartPa
           </button>
         )}
       </div>
-      
+
       {paintingMode && (
         <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900 rounded text-sm text-blue-700 dark:text-blue-300">
           <p className="font-medium">Paint Mode Active</p>

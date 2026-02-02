@@ -1,12 +1,33 @@
-import { terrainTypes } from "./hexUtils";
+import { terrainTypes, forEachHex } from "./hexUtils";
 import { Realm, Hex } from "./realmModel";
 import landmarksData from "../data/landmarks.json";
 import mythsData from "../data/myths.json";
 import seersData from "../data/seers.json";
 
-const pickedLandmarks = new Set();
-const pickedSeers = new Set();
-const pickedMyths = new Set();
+/**
+ * Creates a random picker function that avoids duplicates until the pool is exhausted.
+ * @param {Array|Function} pool - The pool of items to pick from, or a function that returns the pool
+ * @returns {Function} A picker function that returns a random item from the pool
+ */
+function createRandomPicker(pool) {
+  const picked = new Set();
+
+  return (dynamicPool = null) => {
+    // Use dynamic pool if provided (for landmarks by type), otherwise use static pool
+    const currentPool = dynamicPool || (typeof pool === 'function' ? pool() : pool);
+    let available = currentPool.filter(item => !picked.has(item));
+
+    // If all items have been picked, reset and use all items
+    if (available.length === 0) {
+      picked.clear();
+      available = [...currentPool];
+    }
+
+    const selected = available[Math.floor(Math.random() * available.length)];
+    picked.add(selected);
+    return selected;
+  };
+}
 
 const holdingStyles = [
   "Dark", "Ruined", "Hostile", "Ancient", "Ornate", "Wild",
@@ -39,53 +60,27 @@ const quickStartMyths = [
   "The Plague"
 ];
 
+// Create pickers using the factory function
+const landmarkPicker = createRandomPicker([]);
+const seerPicker = createRandomPicker(seersData);
+const mythPicker = createRandomPicker(mythsData);
+const quickStartMythPicker = createRandomPicker(quickStartMyths);
+
 export function pickRandomLandmarkType() {
   const availableTypes = Object.keys(landmarksData);
   return availableTypes[Math.floor(Math.random() * availableTypes.length)];
 }
 
 export function pickRandomLandmark(type) {
-  const options = landmarksData[type];
-  const availableOptions = options.filter(option => !pickedLandmarks.has(option));
-  
-  // If all options have been picked, reset the set and use all options
-  if (availableOptions.length === 0) {
-    pickedLandmarks.clear();
-    availableOptions.push(...options);
-  }
-  
-  const selectedLandmark = availableOptions[Math.floor(Math.random() * availableOptions.length)];
-  pickedLandmarks.add(selectedLandmark);
-  return selectedLandmark;
+  return landmarkPicker(landmarksData[type]);
 }
 
 export function pickRandomSeer() {
-  const availableSeers = seersData.filter(seer => !pickedSeers.has(seer));
-  
-  // If all seers have been picked, reset the set and use all seers
-  if (availableSeers.length === 0) {
-    pickedSeers.clear();
-    availableSeers.push(...seersData);
-  }
-  
-  const selectedSeer = availableSeers[Math.floor(Math.random() * availableSeers.length)];
-  pickedSeers.add(selectedSeer);
-  return selectedSeer;
+  return seerPicker();
 }
 
 export function pickRandomMyth(useQuickStartOnly = false) {
-  const mythPool = useQuickStartOnly ? quickStartMyths : mythsData;
-  const availableMyths = mythPool.filter(myth => !pickedMyths.has(myth));
-
-  // If all myths have been picked, reset the set and use all myths from the pool
-  if (availableMyths.length === 0) {
-    pickedMyths.clear();
-    availableMyths.push(...mythPool);
-  }
-
-  const selectedMyth = availableMyths[Math.floor(Math.random() * availableMyths.length)];
-  pickedMyths.add(selectedMyth);
-  return selectedMyth;
+  return useQuickStartOnly ? quickStartMythPicker() : mythPicker();
 }
 
 export class RealmGenerator {
