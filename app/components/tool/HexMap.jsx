@@ -116,6 +116,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
                       featureType="holding"
                       isSeatOfPower={holding.isSeatOfPower}
                       paintingMode={paintingMode}
+                      riverDrawingMode={riverDrawingMode}
                       draggingFeature={draggingFeature}
                       onDragStart={() => onFeatureDragStart && onFeatureDragStart('holding', rowIndex, colIndex)}
                     />
@@ -127,6 +128,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
                       label={landmarkRef}
                       featureType="landmark"
                       paintingMode={paintingMode}
+                      riverDrawingMode={riverDrawingMode}
                       draggingFeature={draggingFeature}
                       onDragStart={() => onFeatureDragStart && onFeatureDragStart('landmark', rowIndex, colIndex)}
                     />
@@ -138,6 +140,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
                       label={mythRef}
                       featureType="myth"
                       paintingMode={paintingMode}
+                      riverDrawingMode={riverDrawingMode}
                       draggingFeature={draggingFeature}
                       onDragStart={() => onFeatureDragStart && onFeatureDragStart('myth', rowIndex, colIndex)}
                     />
