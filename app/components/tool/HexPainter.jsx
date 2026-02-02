@@ -65,15 +65,19 @@ const HexPainter = ({ terrainTypes, paintingMode, selectedTerrainType, onStartPa
       )}
 
       <div className="mt-4">
-        <label className="block text-sm font-semibold mb-1 text-gray-900 dark:text-white">Show Names</label>
-        <select
-          value={showNames ? "yes" : "no"}
-          onChange={(e) => onShowNamesChange(e.target.value === "yes")}
-          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-        >
-          <option value="yes">Yes</option>
-          <option value="no">No</option>
-        </select>
+        <label className="flex items-center justify-between cursor-pointer">
+          <span className="text-sm font-semibold text-gray-900 dark:text-white">Show Names</span>
+          <div className="relative">
+            <input
+              type="checkbox"
+              checked={showNames}
+              onChange={(e) => onShowNamesChange(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-300 dark:bg-gray-600 rounded-full peer peer-checked:bg-blue-500 transition-colors"></div>
+            <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow peer-checked:translate-x-5 transition-transform"></div>
+          </div>
+        </label>
       </div>
     </div>
   );
