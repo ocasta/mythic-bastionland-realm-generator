@@ -1,14 +1,17 @@
 import HexTile from "./HexTile";
+import FeatureMarker from "./FeatureMarker";
 import { hexUtils } from "../../utils/hexUtils";
 import { getHoldingLabel, getLandmarkLabel, getMythLabel } from "../../utils/featureLabels";
 import TerrainPatterns from "./svg/TerrainPatterns";
 import FeatureNameLabels from "./svg/FeatureNameLabels";
+import RiverPaths from "./svg/RiverPaths";
 
-const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, terrainStyle, showNames, draggingFeature, onFeatureDragStart, onFeatureDrop }) => {
+const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, terrainStyle, showNames, draggingFeature, onFeatureDragStart, onFeatureDrop, riverDrawingMode, currentRiverPath, onRiverHexClick }) => {
   const holdings = realm.getHoldings();
   const landmarks = realm.getLandmarks();
   const myths = realm.getMyths();
   const barriers = realm.getBarriers();
+  const rivers = realm.getRivers();
 
   // Function to get the line coordinates for a barrier side
   const getBarrierLine = (x, y, side, hexSize) => {
@@ -58,43 +61,92 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
       >
         <TerrainPatterns terrainTypes={terrainTypes} terrainStyle={terrainStyle} />
 
+        {/* Hex terrain tiles */}
         {realm.hexMap.map((row, rowIndex) =>
-          row.map((hex, colIndex) => {
-            const landmark = landmarks.find(l => l.row === rowIndex && l.col === colIndex);
-            const holding = holdings.find(h => h.row === rowIndex && h.col === colIndex);
-            const myth = myths.find(m => m.row === rowIndex && m.col === colIndex);
-
-            // Compute reference labels using utility functions
-            const holdingRef = holding ? getHoldingLabel(holding, holdings) : null;
-            const landmarkRef = landmark ? getLandmarkLabel(landmark, landmarks) : null;
-            const mythRef = myth ? getMythLabel(myth, myths) : null;
-
-            return (
-              <HexTile
-                key={`${rowIndex}-${colIndex}`}
-                hex={hex}
-                rowIndex={rowIndex}
-                colIndex={colIndex}
-                hexSize={hexSize}
-                selectHex={selectHex}
-                paintingMode={paintingMode}
-                onHexMouseDown={onHexMouseDown}
-                onHexMouseEnter={onHexMouseEnter}
-                onHexMouseUp={onHexMouseUp}
-                landmark={landmark}
-                holding={holding}
-                myth={myth}
-                holdingRef={holdingRef}
-                landmarkRef={landmarkRef}
-                mythRef={mythRef}
-                terrainTypes={terrainTypes}
-                showNames={showNames}
-                draggingFeature={draggingFeature}
-                onFeatureDragStart={onFeatureDragStart}
-              />
-            );
-          })
+          row.map((hex, colIndex) => (
+            <HexTile
+              key={`${rowIndex}-${colIndex}`}
+              hex={hex}
+              rowIndex={rowIndex}
+              colIndex={colIndex}
+              hexSize={hexSize}
+              selectHex={selectHex}
+              paintingMode={paintingMode}
+              onHexMouseDown={onHexMouseDown}
+              onHexMouseEnter={onHexMouseEnter}
+              onHexMouseUp={onHexMouseUp}
+              terrainTypes={terrainTypes}
+              riverDrawingMode={riverDrawingMode}
+              onRiverHexClick={onRiverHexClick}
+            />
+          ))
         )}
+
+        {/* Rivers - rendered after hex tiles */}
+        <RiverPaths
+          rivers={rivers}
+          hexSize={hexSize}
+          terrainStyle={terrainStyle}
+          currentRiverPath={currentRiverPath}
+          realm={realm}
+        />
+
+        {/* Feature markers - rendered on top of rivers */}
+        <g className="feature-markers">
+          {realm.hexMap.map((row, rowIndex) =>
+            row.map((hex, colIndex) => {
+              const landmark = landmarks.find(l => l.row === rowIndex && l.col === colIndex);
+              const holding = holdings.find(h => h.row === rowIndex && h.col === colIndex);
+              const myth = myths.find(m => m.row === rowIndex && m.col === colIndex);
+
+              if (!landmark && !holding && !myth) return null;
+
+              const { x, y } = hexUtils.hexToWorld(rowIndex, colIndex, hexSize);
+              const holdingRef = holding ? getHoldingLabel(holding, holdings) : null;
+              const landmarkRef = landmark ? getLandmarkLabel(landmark, landmarks) : null;
+              const mythRef = myth ? getMythLabel(myth, myths) : null;
+
+              return (
+                <g key={`feature-${rowIndex}-${colIndex}`}>
+                  {holding && holdingRef && (
+                    <FeatureMarker
+                      x={x}
+                      y={y}
+                      label={holdingRef}
+                      featureType="holding"
+                      isSeatOfPower={holding.isSeatOfPower}
+                      paintingMode={paintingMode}
+                      draggingFeature={draggingFeature}
+                      onDragStart={() => onFeatureDragStart && onFeatureDragStart('holding', rowIndex, colIndex)}
+                    />
+                  )}
+                  {landmark && landmarkRef && (
+                    <FeatureMarker
+                      x={x}
+                      y={y}
+                      label={landmarkRef}
+                      featureType="landmark"
+                      paintingMode={paintingMode}
+                      draggingFeature={draggingFeature}
+                      onDragStart={() => onFeatureDragStart && onFeatureDragStart('landmark', rowIndex, colIndex)}
+                    />
+                  )}
+                  {myth && mythRef && (
+                    <FeatureMarker
+                      x={x}
+                      y={y}
+                      label={mythRef}
+                      featureType="myth"
+                      paintingMode={paintingMode}
+                      draggingFeature={draggingFeature}
+                      onDragStart={() => onFeatureDragStart && onFeatureDragStart('myth', rowIndex, colIndex)}
+                    />
+                  )}
+                </g>
+              );
+            })
+          )}
+        </g>
 
         {/* Drop zone overlays when dragging a feature */}
         {draggingFeature && (

@@ -81,6 +81,41 @@ export class Barrier {
   }
 }
 
+export class River {
+  constructor(id) {
+    this.id = id;
+    this.path = [];        // Array of {row, col} - ordered from source to mouth
+    this.tributaryOf = null; // ID of river this joins (null if main river)
+  }
+
+  addPoint(row, col) {
+    this.path.push({ row, col });
+  }
+
+  removePoint(row, col) {
+    this.path = this.path.filter(p => !(p.row === row && p.col === col));
+  }
+
+  hasPoint(row, col) {
+    return this.path.some(p => p.row === row && p.col === col);
+  }
+
+  static fromJSON(data) {
+    const river = new River(data.id);
+    river.path = data.path || [];
+    river.tributaryOf = data.tributaryOf || null;
+    return river;
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      path: this.path,
+      tributaryOf: this.tributaryOf
+    };
+  }
+}
+
 export const landmarkTypes = [
   "Dwelling", "Sanctum", "Monument", "Hazard", "Curse", "Ruin"
 ];
@@ -111,6 +146,8 @@ export class Realm {
     this.landmarks = [];
     this.myths = [];
     this.barriers = [];
+    this.rivers = [];
+    this.nextRiverId = 1;
     this.hexMap = this.initializeHexMap();
     this.metadata = {
       createdAt: new Date(),
@@ -201,6 +238,51 @@ export class Realm {
     return this.barriers;
   }
 
+  // River methods
+  addRiver(path = [], tributaryOf = null) {
+    const river = new River(this.nextRiverId++);
+    river.path = path;
+    river.tributaryOf = tributaryOf;
+    this.rivers.push(river);
+    return river;
+  }
+
+  removeRiver(id) {
+    // Also update any rivers that were tributaries of this one
+    this.rivers.forEach(r => {
+      if (r.tributaryOf === id) {
+        r.tributaryOf = null;
+      }
+    });
+    this.rivers = this.rivers.filter(r => r.id !== id);
+  }
+
+  getRivers() {
+    return this.rivers;
+  }
+
+  getRiver(id) {
+    return this.rivers.find(r => r.id === id);
+  }
+
+  getRiversAtHex(row, col) {
+    return this.rivers.filter(r => r.hasPoint(row, col));
+  }
+
+  addPointToRiver(id, row, col) {
+    const river = this.getRiver(id);
+    if (river) {
+      river.addPoint(row, col);
+    }
+  }
+
+  removePointFromRiver(id, row, col) {
+    const river = this.getRiver(id);
+    if (river) {
+      river.removePoint(row, col);
+    }
+  }
+
   /**
    * Get all hexes of a specific terrain type
    */
@@ -247,6 +329,9 @@ export class Realm {
       holdings: this.holdings,
       landmarks: this.landmarks,
       myths: this.myths,
+      barriers: this.barriers,
+      rivers: this.rivers.map(r => r.toJSON()),
+      nextRiverId: this.nextRiverId,
       metadata: this.metadata
     };
   }
@@ -257,13 +342,13 @@ export class Realm {
   static import(data) {
     const realm = new Realm(data.rows, data.cols, data.name);
     realm.metadata = data.metadata;
-    
+
     for (let row = 0; row < data.rows; row++) {
       for (let col = 0; col < data.cols; col++) {
         realm.hexMap[row][col] = Hex.fromJSON(data.hexMap[row][col]);
       }
     }
-    
+
     // Import holdings, landmarks, and myths if they exist
     if (data.holdings) {
       realm.holdings = data.holdings.map(h => new Holding(h.row, h.col, h.isSeatOfPower, h.name));
@@ -277,22 +362,33 @@ export class Realm {
     if (data.barriers) {
       realm.barriers = data.barriers.map(b => new Barrier(b.row, b.col, b.side));
     }
-    
+    if (data.rivers) {
+      realm.rivers = data.rivers.map(r => River.fromJSON(r));
+      realm.nextRiverId = data.nextRiverId || (realm.rivers.length + 1);
+    }
+
     return realm;
   }
 
   copy() {
     const newRealm = new Realm(this.rows, this.cols);
-    
+
     // Deep copy the hexMap array
-    newRealm.hexMap = this.hexMap.map(row => 
+    newRealm.hexMap = this.hexMap.map(row =>
       row.map(hex => new Hex(hex.row, hex.col, hex.terrainType))
     );
-    
+
     newRealm.holdings = [...this.holdings];
     newRealm.landmarks = [...this.landmarks];
     newRealm.myths = [...this.myths];
     newRealm.barriers = [...this.barriers];
+    newRealm.rivers = this.rivers.map(r => {
+      const riverCopy = new River(r.id);
+      riverCopy.path = [...r.path];
+      riverCopy.tributaryOf = r.tributaryOf;
+      return riverCopy;
+    });
+    newRealm.nextRiverId = this.nextRiverId;
     newRealm.metadata = { ...this.metadata, lastModified: new Date() };
     return newRealm;
   }

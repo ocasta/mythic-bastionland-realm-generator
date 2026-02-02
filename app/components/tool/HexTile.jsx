@@ -1,12 +1,11 @@
 import { hexUtils } from '../../utils/hexUtils';
-import FeatureMarker from './FeatureMarker';
 
-const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, landmark, holding, myth, holdingRef, landmarkRef, mythRef, terrainTypes, showNames, draggingFeature, onFeatureDragStart }) => {
+const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, riverDrawingMode, onRiverHexClick }) => {
   const { x, y } = hexUtils.hexToWorld(rowIndex, colIndex, hexSize);
   const hexPath = hexUtils.generateHexPath(x, y, hexSize);
 
   // Change cursor based on mode
-  const cursorClass = paintingMode ? 'cursor-crosshair' : 'cursor-pointer';
+  const cursorClass = paintingMode || riverDrawingMode ? 'cursor-crosshair' : 'cursor-pointer';
 
   const handleMouseDown = (e) => {
     if (paintingMode) {
@@ -16,7 +15,9 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
   };
 
   const handleClick = () => {
-    if (!paintingMode) {
+    if (riverDrawingMode) {
+      onRiverHexClick && onRiverHexClick(rowIndex, colIndex);
+    } else if (!paintingMode) {
       selectHex(hex);
     }
   };
@@ -30,59 +31,17 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
     : hex.terrainType.color;
 
   return (
-    <g>
-      <path
-        d={hexPath}
-        fill={fill}
-        stroke="none"
-        className={`hex-tile ${cursorClass} hover:opacity-80 transition-opacity`}
-        onClick={handleClick}
-        onMouseDown={handleMouseDown}
-        onMouseEnter={() => onHexMouseEnter && onHexMouseEnter(hex)}
-        onMouseUp={() => onHexMouseUp && onHexMouseUp()}
-        style={{ userSelect: 'none' }}
-      />
-
-      {/* Render holdings */}
-      {holding && holdingRef && (
-        <FeatureMarker
-          x={x}
-          y={y}
-          label={holdingRef}
-          featureType="holding"
-          isSeatOfPower={holding.isSeatOfPower}
-          paintingMode={paintingMode}
-          draggingFeature={draggingFeature}
-          onDragStart={() => onFeatureDragStart && onFeatureDragStart('holding', rowIndex, colIndex)}
-        />
-      )}
-
-      {/* Render landmarks */}
-      {landmark && landmarkRef && (
-        <FeatureMarker
-          x={x}
-          y={y}
-          label={landmarkRef}
-          featureType="landmark"
-          paintingMode={paintingMode}
-          draggingFeature={draggingFeature}
-          onDragStart={() => onFeatureDragStart && onFeatureDragStart('landmark', rowIndex, colIndex)}
-        />
-      )}
-
-      {/* Render myths */}
-      {myth && mythRef && (
-        <FeatureMarker
-          x={x}
-          y={y}
-          label={mythRef}
-          featureType="myth"
-          paintingMode={paintingMode}
-          draggingFeature={draggingFeature}
-          onDragStart={() => onFeatureDragStart && onFeatureDragStart('myth', rowIndex, colIndex)}
-        />
-      )}
-    </g>
+    <path
+      d={hexPath}
+      fill={fill}
+      stroke="none"
+      className={`hex-tile ${cursorClass} hover:opacity-80 transition-opacity`}
+      onClick={handleClick}
+      onMouseDown={handleMouseDown}
+      onMouseEnter={() => onHexMouseEnter && onHexMouseEnter(hex)}
+      onMouseUp={() => onHexMouseUp && onHexMouseUp()}
+      style={{ userSelect: 'none' }}
+    />
   );
 };
 

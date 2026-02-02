@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { terrainTypes, hexConfig, getTerrainTypesForStyle } from "../utils/hexUtils";
+import { terrainTypes, hexConfig, getTerrainTypesForStyle, hexUtils } from "../utils/hexUtils";
 import { Realm } from "../utils/realmModel";
 import { RealmGenerator as RealmGeneratorUtil, pickRandomLandmark, pickRandomLandmarkType, pickRandomMyth } from "../utils/realmGenerator";
 import { exportRealm, importRealm } from "../utils/realmExport";
@@ -32,6 +32,8 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const [draggingFeature, setDraggingFeature] = useState(null);
   // Shape: { type: 'holding'|'landmark'|'myth', row: number, col: number }
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [riverDrawingMode, setRiverDrawingMode] = useState(false);
+  const [currentRiverPath, setCurrentRiverPath] = useState([]);
 
   const styledTerrainTypes = getTerrainTypesForStyle(terrainStyle);
 
@@ -48,6 +50,8 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     setSelectedTerrainType(null);
     setIsDragging(false);
     setDragStarted(false);
+    setRiverDrawingMode(false);
+    setCurrentRiverPath([]);
   };
 
   const clampValue = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -307,6 +311,69 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     updateSelectedHex(row, col, newRealm);
   };
 
+  // River drawing handlers
+  const startRiverDrawing = () => {
+    setRiverDrawingMode(true);
+    setCurrentRiverPath([]);
+    setPaintingMode(false);
+    setSelectedTerrainType(null);
+    setSelectedHex(null);
+  };
+
+  const addRiverPoint = (row, col) => {
+    // If this is not the first point, check adjacency
+    if (currentRiverPath.length > 0) {
+      const lastPoint = currentRiverPath[currentRiverPath.length - 1];
+      const neighbors = hexUtils.getNeighbors(lastPoint.row, lastPoint.col, realm.rows, realm.cols);
+      const isAdjacent = neighbors.some(n => n.row === row && n.col === col);
+
+      if (!isAdjacent) {
+        return; // Ignore non-adjacent clicks
+      }
+
+      // Don't allow revisiting the same hex (except to close a loop maybe in future)
+      if (currentRiverPath.some(p => p.row === row && p.col === col)) {
+        return;
+      }
+    }
+
+    setCurrentRiverPath(prev => [...prev, { row, col }]);
+  };
+
+  const finishRiver = () => {
+    if (currentRiverPath.length >= 2) {
+      const newRealm = realm.copy();
+
+      // Check if this river ends on an existing river (making it a tributary)
+      const lastPoint = currentRiverPath[currentRiverPath.length - 1];
+      let tributaryOf = null;
+
+      for (const river of newRealm.rivers) {
+        if (river.hasPoint(lastPoint.row, lastPoint.col)) {
+          tributaryOf = river.id;
+          break;
+        }
+      }
+
+      newRealm.addRiver([...currentRiverPath], tributaryOf);
+      setRealm(newRealm);
+    }
+
+    setRiverDrawingMode(false);
+    setCurrentRiverPath([]);
+  };
+
+  const cancelRiver = () => {
+    setRiverDrawingMode(false);
+    setCurrentRiverPath([]);
+  };
+
+  const removeRiver = (id) => {
+    const newRealm = realm.copy();
+    newRealm.removeRiver(id);
+    setRealm(newRealm);
+  };
+
   // Feature drag and drop handlers
   const moveHolding = (fromRow, fromCol, toRow, toCol) => {
     const newRealm = realm.copy();
@@ -514,6 +581,11 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
               onTerrainStyleChange={setTerrainStyle}
               showNames={showNames}
               onShowNamesChange={setShowNames}
+              riverDrawingMode={riverDrawingMode}
+              currentRiverPath={currentRiverPath}
+              onStartRiverDrawing={startRiverDrawing}
+              onFinishRiver={finishRiver}
+              onCancelRiver={cancelRiver}
             />
           </div>
 
@@ -535,6 +607,9 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
               draggingFeature={draggingFeature}
               onFeatureDragStart={handleFeatureDragStart}
               onFeatureDrop={handleFeatureDrop}
+              riverDrawingMode={riverDrawingMode}
+              currentRiverPath={currentRiverPath}
+              onRiverHexClick={addRiverPoint}
             />
           </div>
 
@@ -554,6 +629,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
               onRemoveMyth={removeMyth}
               onAddBarrier={addBarrier}
               onRemoveBarrier={removeBarrier}
+              onRemoveRiver={removeRiver}
               terrainTypes={styledTerrainTypes}
             />
           </div>
