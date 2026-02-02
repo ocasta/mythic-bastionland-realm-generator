@@ -275,13 +275,9 @@ function generateWidthSegments(path, widths, hexSize, realm = null) {
   }
 
   // Convert path points to world coordinates (up to water)
-  // Add tiny perturbation to avoid zero-width/height bounding boxes which break SVG filters
   const points = [];
   for (let i = 0; i < endIndex; i++) {
-    const pt = hexUtils.pointToWorld(path[i], hexSize);
-    pt.x += (i % 2 === 0 ? 0.01 : -0.01);
-    pt.y += (i % 2 === 0 ? -0.01 : 0.01);
-    points.push(pt);
+    points.push(hexUtils.pointToWorld(path[i], hexSize));
   }
 
   // Add water edge point if we hit water
@@ -349,9 +345,9 @@ const RiverPaths = ({
 
   return (
     <g className="river-paths">
-      {/* SVG filters for watercolour style */}
+      {/* SVG filters for watercolour style - use userSpaceOnUse to avoid zero bounding box issues */}
       <defs>
-        <filter id="riverBlur" x="-50%" y="-50%" width="200%" height="200%">
+        <filter id="riverBlur" filterUnits="userSpaceOnUse" x="0" y="0" width="2000" height="2000">
           <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" />
         </filter>
       </defs>
