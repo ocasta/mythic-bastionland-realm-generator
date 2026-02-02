@@ -29,6 +29,8 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const [useQuickStartMyths, setUseQuickStartMyths] = useState(false);
   const [terrainStyle, setTerrainStyle] = useState("watercolour");
   const [showNames, setShowNames] = useState(true);
+  const [draggingFeature, setDraggingFeature] = useState(null);
+  // Shape: { type: 'holding'|'landmark'|'myth', row: number, col: number }
 
   const styledTerrainTypes = getTerrainTypesForStyle(terrainStyle);
 
@@ -304,6 +306,66 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     updateSelectedHex(row, col, newRealm);
   };
 
+  // Feature drag and drop handlers
+  const moveHolding = (fromRow, fromCol, toRow, toCol) => {
+    const newRealm = realm.copy();
+    const holding = newRealm.holdings.find(h => h.row === fromRow && h.col === fromCol);
+    if (holding) {
+      holding.row = toRow;
+      holding.col = toCol;
+    }
+    setRealm(newRealm);
+  };
+
+  const moveLandmark = (fromRow, fromCol, toRow, toCol) => {
+    const newRealm = realm.copy();
+    const landmark = newRealm.landmarks.find(l => l.row === fromRow && l.col === fromCol);
+    if (landmark) {
+      landmark.row = toRow;
+      landmark.col = toCol;
+    }
+    setRealm(newRealm);
+  };
+
+  const moveMyth = (fromRow, fromCol, toRow, toCol) => {
+    const newRealm = realm.copy();
+    const myth = newRealm.myths.find(m => m.row === fromRow && m.col === fromCol);
+    if (myth) {
+      myth.row = toRow;
+      myth.col = toCol;
+    }
+    setRealm(newRealm);
+  };
+
+  const handleFeatureDragStart = (type, row, col) => {
+    setDraggingFeature({ type, row, col });
+  };
+
+  const handleFeatureDrop = (toRow, toCol) => {
+    if (!draggingFeature) return;
+
+    // Check target hex doesn't already have a feature
+    const hasFeature = realm.getHolding(toRow, toCol) ||
+                       realm.getLandmark(toRow, toCol) ||
+                       realm.getMyth(toRow, toCol);
+    if (hasFeature) {
+      setDraggingFeature(null);
+      return; // Can't drop on hex with existing feature
+    }
+
+    // Move the feature
+    const { type, row, col } = draggingFeature;
+    if (type === 'holding') moveHolding(row, col, toRow, toCol);
+    else if (type === 'landmark') moveLandmark(row, col, toRow, toCol);
+    else if (type === 'myth') moveMyth(row, col, toRow, toCol);
+
+    setDraggingFeature(null);
+  };
+
+  const handleFeatureDragEnd = () => {
+    setDraggingFeature(null);
+  };
+
   const editRealmName = (newName) => {
     const newRealm = realm.copy();
     newRealm.name = newName;
@@ -357,8 +419,13 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     });
   };
 
+  const handleGlobalMouseUp = () => {
+    handleHexMouseUp(); // existing terrain painting cleanup
+    handleFeatureDragEnd(); // cancel drag if mouse released outside valid target
+  };
+
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950" onMouseUp={handleHexMouseUp}>
+    <div className="min-h-screen bg-white dark:bg-gray-950" onMouseUp={handleGlobalMouseUp}>
       <div className="flex-1 hex-grid-container">
         <div className="controls mb-4">
           <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
@@ -449,6 +516,9 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
               terrainTypes={styledTerrainTypes}
               terrainStyle={terrainStyle}
               showNames={showNames}
+              draggingFeature={draggingFeature}
+              onFeatureDragStart={handleFeatureDragStart}
+              onFeatureDrop={handleFeatureDrop}
             />
           </div>
 

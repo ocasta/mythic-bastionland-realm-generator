@@ -1,6 +1,6 @@
 import { hexUtils } from '../../utils/hexUtils';
 
-const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, landmark, holding, myth, holdingRef, landmarkRef, mythRef, terrainTypes, showNames }) => {
+const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, landmark, holding, myth, holdingRef, landmarkRef, mythRef, terrainTypes, showNames, draggingFeature, onFeatureDragStart }) => {
   const { x, y } = hexUtils.hexToWorld(rowIndex, colIndex, hexSize);
   const hexPath = hexUtils.generateHexPath(x, y, hexSize);
 
@@ -45,7 +45,15 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
       
       {/* Render holdings */}
       {holding && holdingRef && (
-        <g className="pointer-events-none">
+        <g
+          className={paintingMode || draggingFeature ? "pointer-events-none" : "cursor-grab"}
+          onMouseDown={(e) => {
+            if (!paintingMode && !draggingFeature) {
+              e.stopPropagation();
+              onFeatureDragStart && onFeatureDragStart('holding', rowIndex, colIndex);
+            }
+          }}
+        >
           <circle
             cx={x}
             cy={y}
@@ -70,7 +78,15 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
 
       {/* Render landmarks */}
       {landmark && landmarkRef && (
-        <g className="pointer-events-none">
+        <g
+          className={paintingMode || draggingFeature ? "pointer-events-none" : "cursor-grab"}
+          onMouseDown={(e) => {
+            if (!paintingMode && !draggingFeature) {
+              e.stopPropagation();
+              onFeatureDragStart && onFeatureDragStart('landmark', rowIndex, colIndex);
+            }
+          }}
+        >
           <circle cx={x} cy={y} r="12" fill="#22c55e" />
           <text
             x={x}
@@ -88,7 +104,15 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
 
       {/* Render myths */}
       {myth && mythRef && (
-        <g className="pointer-events-none">
+        <g
+          className={paintingMode || draggingFeature ? "pointer-events-none" : "cursor-grab"}
+          onMouseDown={(e) => {
+            if (!paintingMode && !draggingFeature) {
+              e.stopPropagation();
+              onFeatureDragStart && onFeatureDragStart('myth', rowIndex, colIndex);
+            }
+          }}
+        >
           <circle cx={x} cy={y} r="12" fill="#9333ea" />
           <text
             x={x}

@@ -1,7 +1,7 @@
 import HexTile from "./HexTile";
 import { hexUtils } from "../../utils/hexUtils";
 
-const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, terrainStyle, showNames }) => {
+const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, terrainStyle, showNames, draggingFeature, onFeatureDragStart, onFeatureDrop }) => {
   const holdings = realm.getHoldings();
   const landmarks = realm.getLandmarks();
   const myths = realm.getMyths();
@@ -114,9 +114,69 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
                 mythRef={mythRef}
                 terrainTypes={terrainTypes}
                 showNames={showNames}
+                draggingFeature={draggingFeature}
+                onFeatureDragStart={onFeatureDragStart}
               />
             );
           })
+        )}
+
+        {/* Drop zone overlays when dragging a feature */}
+        {draggingFeature && (
+          <g className="drop-zones">
+            {realm.hexMap.map((row, rowIndex) =>
+              row.map((hex, colIndex) => {
+                const hasFeature = holdings.find(h => h.row === rowIndex && h.col === colIndex) ||
+                                   landmarks.find(l => l.row === rowIndex && l.col === colIndex) ||
+                                   myths.find(m => m.row === rowIndex && m.col === colIndex);
+                const isSource = draggingFeature.row === rowIndex && draggingFeature.col === colIndex;
+
+                if (hasFeature || isSource) return null;
+
+                const { x, y } = hexUtils.hexToWorld(rowIndex, colIndex, hexSize);
+                const hexPath = hexUtils.generateHexPath(x, y, hexSize);
+
+                // Match overlay and cursor color to the feature type being dragged
+                let fillColor, strokeColor, cursorColor;
+                if (draggingFeature.type === 'holding') {
+                  // Check if it's a Seat of Power (gold) or regular holding (blue)
+                  const draggedHolding = holdings.find(h => h.row === draggingFeature.row && h.col === draggingFeature.col);
+                  if (draggedHolding?.isSeatOfPower) {
+                    fillColor = 'rgba(251, 191, 36, 0.2)';  // gold
+                    strokeColor = 'rgba(251, 191, 36, 0.5)';
+                    cursorColor = '%23fbbf24';  // URL-encoded #fbbf24
+                  } else {
+                    fillColor = 'rgba(37, 99, 235, 0.2)';  // blue
+                    strokeColor = 'rgba(37, 99, 235, 0.5)';
+                    cursorColor = '%232563eb';  // URL-encoded #2563eb
+                  }
+                } else if (draggingFeature.type === 'landmark') {
+                  fillColor = 'rgba(34, 197, 94, 0.2)';  // green
+                  strokeColor = 'rgba(34, 197, 94, 0.5)';
+                  cursorColor = '%2322c55e';  // URL-encoded #22c55e
+                } else if (draggingFeature.type === 'myth') {
+                  fillColor = 'rgba(147, 51, 234, 0.2)'; // purple
+                  strokeColor = 'rgba(147, 51, 234, 0.5)';
+                  cursorColor = '%239333ea';  // URL-encoded #9333ea
+                }
+
+                // Create a custom cursor with a colored circle and plus sign
+                const cursorSvg = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='${cursorColor}'/%3E%3Cpath d='M12 7v10M7 12h10' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") 12 12, copy`;
+
+                return (
+                  <path
+                    key={`drop-${rowIndex}-${colIndex}`}
+                    d={hexPath}
+                    fill={fillColor}
+                    stroke={strokeColor}
+                    strokeWidth="2"
+                    style={{ cursor: cursorSvg }}
+                    onMouseUp={() => onFeatureDrop(rowIndex, colIndex)}
+                  />
+                );
+              })
+            )}
+          </g>
         )}
         
         {/* Hex grid strokes - rendered on top of all hex tiles */}

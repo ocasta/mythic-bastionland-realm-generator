@@ -162,6 +162,10 @@ export class Realm {
     return this.holdings;
   }
 
+  getHolding(row, col) {
+    return this.holdings.find(h => h.row === row && h.col === col);
+  }
+
   addLandmark(row, col, type, name, seer = null) {
     const landmark = new Landmark(row, col, type, name, seer);
     this.landmarks.push(landmark);
@@ -171,6 +175,10 @@ export class Realm {
     return this.landmarks;
   }
 
+  getLandmark(row, col) {
+    return this.landmarks.find(l => l.row === row && l.col === col);
+  }
+
   addMyth(row, col, name) {
     const myth = new Myth(row, col, name);
     this.myths.push(myth);
@@ -178,6 +186,10 @@ export class Realm {
 
   getMyths() {
     return this.myths;
+  }
+
+  getMyth(row, col) {
+    return this.myths.find(m => m.row === row && m.col === col);
   }
 
   addBarrier(row, col, side) {
