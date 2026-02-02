@@ -11,12 +11,15 @@ const HexDetails = ({
   onAddHolding,
   onUpdateHolding,
   onRemoveHolding,
+  onRegenerateHolding,
   onAddLandmark,
   onUpdateLandmark,
   onRemoveLandmark,
+  onRegenerateLandmark,
   onAddMyth,
   onUpdateMyth,
   onRemoveMyth,
+  onRegenerateMyth,
   onAddBarrier,
   onRemoveBarrier,
   onRemoveRiver,
@@ -95,6 +98,7 @@ const HexDetails = ({
                     selectedHex={selectedHex}
                     onUpdate={onUpdateHolding}
                     onRemove={onRemoveHolding}
+                    onRegenerate={onRegenerateHolding}
                   />
                 )}
 
@@ -104,6 +108,7 @@ const HexDetails = ({
                     selectedHex={selectedHex}
                     onUpdate={onUpdateLandmark}
                     onRemove={onRemoveLandmark}
+                    onRegenerate={onRegenerateLandmark}
                   />
                 )}
 
@@ -113,6 +118,7 @@ const HexDetails = ({
                     selectedHex={selectedHex}
                     onUpdate={onUpdateMyth}
                     onRemove={onRemoveMyth}
+                    onRegenerate={onRegenerateMyth}
                   />
                 )}
               </div>

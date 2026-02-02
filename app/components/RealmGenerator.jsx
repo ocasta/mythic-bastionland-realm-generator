@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { terrainTypes, hexConfig, getTerrainTypesForStyle, hexUtils } from "../utils/hexUtils";
 import { Realm } from "../utils/realmModel";
-import { RealmGenerator as RealmGeneratorUtil, pickRandomLandmark, pickRandomLandmarkType, pickRandomMyth } from "../utils/realmGenerator";
+import { RealmGenerator as RealmGeneratorUtil, pickRandomLandmark, pickRandomLandmarkType, pickRandomMyth, pickRandomSeer, generateHoldingName } from "../utils/realmGenerator";
 import { exportRealm, importRealm } from "../utils/realmExport";
 import { generateGMPDF, generatePlayerPDF } from "../utils/pdfExport";
 import RealmGenerationControls from "./tool/RealmGenerationControls";
@@ -217,9 +217,10 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     updateSelectedHex(row, col, newRealm);
   };
 
-  const addHolding = (row, col, isSeatOfPower = false, name = "Unknown") => {
+  const addHolding = (row, col, isSeatOfPower = false, name = null) => {
     const newRealm = realm.copy();
-    newRealm.addHolding(row, col, isSeatOfPower, name);
+    const holdingName = name ?? generateHoldingName(isSeatOfPower);
+    newRealm.addHolding(row, col, isSeatOfPower, holdingName);
     setRealm(newRealm);
     updateSelectedHex(row, col, newRealm);
   };
@@ -228,8 +229,20 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     const newRealm = realm.copy();
     const holdingIndex = newRealm.holdings.findIndex(h => h.row === row && h.col === col);
     if (holdingIndex !== -1) {
+      const seatOfPowerChanged = newRealm.holdings[holdingIndex].isSeatOfPower !== isSeatOfPower;
       newRealm.holdings[holdingIndex].isSeatOfPower = isSeatOfPower;
-      newRealm.holdings[holdingIndex].name = name;
+      newRealm.holdings[holdingIndex].name = seatOfPowerChanged ? generateHoldingName(isSeatOfPower) : name;
+    }
+    setRealm(newRealm);
+    updateSelectedHex(row, col, newRealm);
+  };
+
+  const regenerateHolding = (row, col) => {
+    const newRealm = realm.copy();
+    const holdingIndex = newRealm.holdings.findIndex(h => h.row === row && h.col === col);
+    if (holdingIndex !== -1) {
+      const isSeatOfPower = newRealm.holdings[holdingIndex].isSeatOfPower;
+      newRealm.holdings[holdingIndex].name = generateHoldingName(isSeatOfPower);
     }
     setRealm(newRealm);
     updateSelectedHex(row, col, newRealm);
@@ -272,6 +285,21 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     updateSelectedHex(row, col, newRealm);
   };
 
+  const regenerateLandmark = (row, col) => {
+    const newRealm = realm.copy();
+    const landmarkIndex = newRealm.landmarks.findIndex(l => l.row === row && l.col === col);
+    if (landmarkIndex !== -1) {
+      const landmarkType = pickRandomLandmarkType();
+      const landmark = pickRandomLandmark(landmarkType);
+      const seer = landmarkType === 'Sanctum' ? pickRandomSeer() : null;
+      newRealm.landmarks[landmarkIndex].type = landmarkType;
+      newRealm.landmarks[landmarkIndex].name = landmark;
+      newRealm.landmarks[landmarkIndex].seer = seer;
+    }
+    setRealm(newRealm);
+    updateSelectedHex(row, col, newRealm);
+  };
+
   const addMyth = (row, col) => {
     const newRealm = realm.copy();
     const myth = pickRandomMyth();
@@ -293,6 +321,16 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const removeMyth = (row, col) => {
     const newRealm = realm.copy();
     newRealm.myths = newRealm.myths.filter(m => !(m.row === row && m.col === col));
+    setRealm(newRealm);
+    updateSelectedHex(row, col, newRealm);
+  };
+
+  const regenerateMyth = (row, col) => {
+    const newRealm = realm.copy();
+    const mythIndex = newRealm.myths.findIndex(m => m.row === row && m.col === col);
+    if (mythIndex !== -1) {
+      newRealm.myths[mythIndex].name = pickRandomMyth();
+    }
     setRealm(newRealm);
     updateSelectedHex(row, col, newRealm);
   };
@@ -621,12 +659,15 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
               onAddHolding={addHolding}
               onUpdateHolding={updateHolding}
               onRemoveHolding={removeHolding}
+              onRegenerateHolding={regenerateHolding}
               onAddLandmark={addLandmark}
               onUpdateLandmark={updateLandmark}
               onRemoveLandmark={removeLandmark}
+              onRegenerateLandmark={regenerateLandmark}
               onAddMyth={addMyth}
               onUpdateMyth={updateMyth}
               onRemoveMyth={removeMyth}
+              onRegenerateMyth={regenerateMyth}
               onAddBarrier={addBarrier}
               onRemoveBarrier={removeBarrier}
               onRemoveRiver={removeRiver}
