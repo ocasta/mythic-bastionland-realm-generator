@@ -84,19 +84,48 @@ export class Barrier {
 export class River {
   constructor(id) {
     this.id = id;
-    this.path = [];        // Array of {row, col} - ordered from source to mouth
+    this.path = [];        // Array of {row, col, corner?} - ordered from source to mouth
     this.tributaryOf = null; // ID of river this joins (null if main river)
   }
 
-  addPoint(row, col) {
-    this.path.push({ row, col });
+  addPoint(row, col, corner = null) {
+    const point = { row, col };
+    if (corner !== null && corner !== undefined) {
+      point.corner = corner;
+    }
+    this.path.push(point);
   }
 
-  removePoint(row, col) {
-    this.path = this.path.filter(p => !(p.row === row && p.col === col));
+  removePoint(row, col, corner = null) {
+    this.path = this.path.filter(p => {
+      const samePos = p.row === row && p.col === col;
+      if (!samePos) return true;
+      // If corner specified, only remove matching corner points
+      if (corner !== null && corner !== undefined) {
+        return p.corner !== corner;
+      }
+      // If no corner specified, only remove center points
+      return p.corner !== undefined && p.corner !== null;
+    });
   }
 
-  hasPoint(row, col) {
+  hasPoint(row, col, corner = null) {
+    return this.path.some(p => {
+      const samePos = p.row === row && p.col === col;
+      if (!samePos) return false;
+      // If corner specified, match corner points
+      if (corner !== null && corner !== undefined) {
+        return p.corner === corner;
+      }
+      // If no corner specified, match center points
+      return p.corner === undefined || p.corner === null;
+    });
+  }
+
+  /**
+   * Check if river has any point at this hex (center or any corner)
+   */
+  hasPointAtHex(row, col) {
     return this.path.some(p => p.row === row && p.col === col);
   }
 
@@ -269,17 +298,17 @@ export class Realm {
     return this.rivers.filter(r => r.hasPoint(row, col));
   }
 
-  addPointToRiver(id, row, col) {
+  addPointToRiver(id, row, col, corner = null) {
     const river = this.getRiver(id);
     if (river) {
-      river.addPoint(row, col);
+      river.addPoint(row, col, corner);
     }
   }
 
-  removePointFromRiver(id, row, col) {
+  removePointFromRiver(id, row, col, corner = null) {
     const river = this.getRiver(id);
     if (river) {
-      river.removePoint(row, col);
+      river.removePoint(row, col, corner);
     }
   }
 

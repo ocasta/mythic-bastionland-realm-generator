@@ -320,24 +320,35 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     setSelectedHex(null);
   };
 
-  const addRiverPoint = (row, col) => {
+  const addRiverPoint = (row, col, corner = null) => {
+    const newPoint = { row, col };
+    if (corner !== null && corner !== undefined) {
+      newPoint.corner = corner;
+    }
+
     // If this is not the first point, check adjacency
     if (currentRiverPath.length > 0) {
       const lastPoint = currentRiverPath[currentRiverPath.length - 1];
-      const neighbors = hexUtils.getNeighbors(lastPoint.row, lastPoint.col, realm.rows, realm.cols);
-      const isAdjacent = neighbors.some(n => n.row === row && n.col === col);
+
+      // Use the new adjacency check that handles both centers and corners
+      const isAdjacent = hexUtils.arePointsAdjacent(lastPoint, newPoint, realm.rows, realm.cols);
 
       if (!isAdjacent) {
         return; // Ignore non-adjacent clicks
       }
 
-      // Don't allow revisiting the same hex (except to close a loop maybe in future)
-      if (currentRiverPath.some(p => p.row === row && p.col === col)) {
+      // Don't allow revisiting the exact same point
+      const isDuplicate = currentRiverPath.some(p =>
+        p.row === row && p.col === col &&
+        ((p.corner === undefined || p.corner === null) && (corner === undefined || corner === null) ||
+         p.corner === corner)
+      );
+      if (isDuplicate) {
         return;
       }
     }
 
-    setCurrentRiverPath(prev => [...prev, { row, col }]);
+    setCurrentRiverPath(prev => [...prev, newPoint]);
   };
 
   const finishRiver = () => {
@@ -349,7 +360,13 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
       let tributaryOf = null;
 
       for (const river of newRealm.rivers) {
-        if (river.hasPoint(lastPoint.row, lastPoint.col)) {
+        // Check for exact point match (center or corner)
+        if (river.hasPoint(lastPoint.row, lastPoint.col, lastPoint.corner ?? null)) {
+          tributaryOf = river.id;
+          break;
+        }
+        // Also check if ending at any point in the same hex (for tributaries joining at different points)
+        if (river.hasPointAtHex(lastPoint.row, lastPoint.col)) {
           tributaryOf = river.id;
           break;
         }
