@@ -291,7 +291,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     if (landmarkIndex !== -1) {
       const landmarkType = pickRandomLandmarkType();
       const landmark = pickRandomLandmark(landmarkType);
-      const seer = landmarkType === 'Sanctum' ? pickRandomSeer() : null;
+      const seer = landmarkType === 'Sanctum' ? pickRandomSeer(useQuickStartLists) : null;
       newRealm.landmarks[landmarkIndex].type = landmarkType;
       newRealm.landmarks[landmarkIndex].name = landmark;
       newRealm.landmarks[landmarkIndex].seer = seer;
@@ -329,7 +329,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     const newRealm = realm.copy();
     const mythIndex = newRealm.myths.findIndex(m => m.row === row && m.col === col);
     if (mythIndex !== -1) {
-      newRealm.myths[mythIndex].name = pickRandomMyth();
+      newRealm.myths[mythIndex].name = pickRandomMyth(useQuickStartLists);
     }
     setRealm(newRealm);
     updateSelectedHex(row, col, newRealm);
