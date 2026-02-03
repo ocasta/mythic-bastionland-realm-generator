@@ -49,6 +49,82 @@ const seatOfPowerDecorations = [
   "Jewels", "Wreaths", "Candles", "Fur", "Tapestries", "Shields"
 ];
 
+const baileyNames = [
+  "Filthy Marketplace", "Abandoned Forge", "Joyous Library", "Sophisticated Fountain",
+  "Industrious Temple", "Humble Forum", "Majestic Tomb", "Hallowed Garden",
+  "Rustic Hall", "Solemn Workshops", "Bustling Arena", "Immaculate Garrison"
+];
+
+const keepFeatures = [
+  "Hearth", "Throne", "Musicians", "Pool", "Advisers", "Servants",
+  "Shrine", "Table", "Reliquary", "Cauldron", "Chandelier", "Guards"
+];
+
+const keepDecorations = [
+  "Antlers", "Silver", "Heraldry", "Bones", "Flowers", "Scripture",
+  "Jewels", "Wreaths", "Candles", "Fur", "Tapestries", "Shields"
+];
+
+const foodAdjectives = [
+  "Spiced", "Herbal", "Crunchy", "Sour", "Dry", "Fermented",
+  "Salted", "Wet", "Fatty", "Chewy", "Sweet", "Mild"
+];
+
+const foodItems = [
+  "Fish", "Fruit", "Stew", "Mushrooms", "Pie", "Cheese",
+  "Nuts", "Cake", "Porridge", "Bread", "Vegetable", "Meat"
+];
+
+const goodsAdjectives = [
+  "Military", "Abundant", "Traditional", "Specialist", "Industrious", "Innovative",
+  "Secretive", "Simple", "Strong", "Decorated", "Fine", "Lucky"
+];
+
+const goodsItems = [
+  "Textile", "Livestock", "Grain", "Mead", "Tools", "Stone",
+  "Wood", "Pottery", "Metal", "Leather", "Honey", "Herb"
+];
+
+const luxuriesAdjectives = [
+  "Antique", "Intricate", "Unique", "Scarce", "Hazardous", "Flawless",
+  "Luminous", "Lost", "Esoteric", "Sacred", "Mythical", "Beautiful"
+];
+
+const luxuriesItems = [
+  "Jewel", "Wine", "Spice", "Fragrance", "Silk", "Fur",
+  "Artwork", "Sword", "Creature", "Ore", "Root", "Scripture"
+];
+
+const dramaThemes = [
+  "Betrayal", "Jealousy", "Rivalry", "Infidelity", "Coup", "Ambition",
+  "Redemption", "Revelation", "Wrath", "Greed", "Banishment", "Manipulation"
+];
+
+const dramaElements = [
+  "Brawl", "Poison", "Oath", "Feast", "Letters", "Disguise",
+  "Inheritance", "Assassin", "Family", "Alcohol", "Blackmail", "Gold"
+];
+
+const woeAdjectives = [
+  "Secretive", "Violent", "Looming", "Sudden", "Ongoing", "Prophecised",
+  "Mysterious", "Sanctioned", "Unseen", "Vast", "Escalating", "Concealed"
+];
+
+const woeEvents = [
+  "Disease", "Famine", "Raids", "Invasion", "Abduction", "Storm",
+  "Fire", "Revolt", "Exodus", "Beast", "Killing", "Theft"
+];
+
+const newsEvents = [
+  "Duel", "Birth", "Market", "Trial", "Ritual", "Mercenaries",
+  "Festival", "Tournament", "Punishment", "Performance", "Death", "Marriage"
+];
+
+const newsMoods = [
+  "Pensive", "Joyous", "Content", "Divided", "Furious", "Sceptical",
+  "Adoring", "Nostalgic", "Unified", "Bleak", "Solemn", "Optimistic"
+];
+
 export function generateHoldingName(isSeatOfPower = false) {
   if (isSeatOfPower) {
     const featureRoll = Math.floor(Math.random() * 12);
@@ -58,6 +134,96 @@ export function generateHoldingName(isSeatOfPower = false) {
   const styleRoll = Math.floor(Math.random() * 12);
   const featureRoll = Math.floor(Math.random() * 12);
   return `${holdingStyles[styleRoll]} ${holdingFeatures[featureRoll]}`;
+}
+
+export function generateBaileyName() {
+  const roll = Math.floor(Math.random() * 12);
+  return baileyNames[roll];
+}
+
+export function generateKeepName() {
+  const featureRoll = Math.floor(Math.random() * 12);
+  const decorationRoll = Math.floor(Math.random() * 12);
+  return `${keepFeatures[featureRoll]} of ${keepDecorations[decorationRoll]}`;
+}
+
+export function generateFoodName() {
+  const adjRoll = Math.floor(Math.random() * 12);
+  const itemRoll = Math.floor(Math.random() * 12);
+  return `${foodAdjectives[adjRoll]} ${foodItems[itemRoll]}`;
+}
+
+export function generateGoodsName() {
+  const adjRoll = Math.floor(Math.random() * 12);
+  const itemRoll = Math.floor(Math.random() * 12);
+  return `${goodsAdjectives[adjRoll]} ${goodsItems[itemRoll]}`;
+}
+
+export function generateLuxuriesName() {
+  const adjRoll = Math.floor(Math.random() * 12);
+  const itemRoll = Math.floor(Math.random() * 12);
+  return `${luxuriesAdjectives[adjRoll]} ${luxuriesItems[itemRoll]}`;
+}
+
+export function generateDramaName() {
+  const themeRoll = Math.floor(Math.random() * 12);
+  const elementRoll = Math.floor(Math.random() * 12);
+  return `${dramaThemes[themeRoll]} ${dramaElements[elementRoll]}`;
+}
+
+export function generateWoeName() {
+  const adjRoll = Math.floor(Math.random() * 12);
+  const eventRoll = Math.floor(Math.random() * 12);
+  return `${woeAdjectives[adjRoll]} ${woeEvents[eventRoll]}`;
+}
+
+export function generateNewsName() {
+  const eventRoll = Math.floor(Math.random() * 12);
+  const moodRoll = Math.floor(Math.random() * 12);
+  return `${newsEvents[eventRoll]} ${newsMoods[moodRoll]}`;
+}
+
+export const holdingDetailTypes = ['None', 'Holding', 'Bailey', 'Keep', 'Food', 'Goods', 'Luxuries', 'Drama', 'Woe', 'News'];
+
+export function generateHoldingDetailName(detailType) {
+  switch (detailType) {
+    case 'Holding':
+      return generateHoldingName(false);
+    case 'Bailey':
+      return generateBaileyName();
+    case 'Keep':
+      return generateKeepName();
+    case 'Food':
+      return generateFoodName();
+    case 'Goods':
+      return generateGoodsName();
+    case 'Luxuries':
+      return generateLuxuriesName();
+    case 'Drama':
+      return generateDramaName();
+    case 'Woe':
+      return generateWoeName();
+    case 'News':
+      return generateNewsName();
+    case 'None':
+    default:
+      return '';
+  }
+}
+
+export function generateDefaultHoldingDetails(isSeatOfPower) {
+  // First row: Keep for Seat of Power, Holding for regular
+  const firstType = isSeatOfPower ? 'Keep' : 'Holding';
+  const firstName = isSeatOfPower ? generateKeepName() : generateHoldingName(false);
+
+  return [
+    { type: firstType, name: firstName },
+    { type: 'None', name: '' },
+    { type: 'None', name: '' },
+    { type: 'None', name: '' },
+    { type: 'None', name: '' },
+    { type: 'None', name: '' }
+  ];
 }
 
 const quickStartMyths = [
@@ -266,7 +432,9 @@ export class RealmGenerator {
       const position = this.findValidPosition(realm, this.isValidHoldingPosition.bind(this));
       if (position) {
         const isSeatOfPower = i === 0;
-        realm.addHolding(position.row, position.col, isSeatOfPower, generateHoldingName(isSeatOfPower));
+        const details = generateDefaultHoldingDetails(isSeatOfPower);
+        const holdingName = details[0].name;
+        realm.addHolding(position.row, position.col, isSeatOfPower, holdingName, details);
       } else {
         console.warn(`Could not place holding ${i + 1} due to placement constraints`);
       }

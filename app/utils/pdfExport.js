@@ -173,7 +173,7 @@ async function svgToCanvas(svgElement, { hideLabels = false } = {}) {
  * @param {jsPDF} pdf - The PDF document
  * @param {string} title - Section title
  * @param {Array} items - Items to render
- * @param {Function} formatItem - Function to format each item (label, data) => string
+ * @param {Function} formatItem - Function to format each item (label, data) => string or string[]
  * @param {number[]} color - RGB color for the title
  * @param {number} startY - Starting Y position
  * @param {number} margin - Left margin
@@ -200,9 +200,13 @@ function addFeatureSection(pdf, title, items, formatItem, color, startY, margin)
   pdf.setTextColor(...colors.text);
 
   items.forEach((item, index) => {
-    const text = formatItem(item, index);
-    pdf.text(text, margin + 3, yPosition);
-    yPosition += lineHeight;
+    const result = formatItem(item, index);
+    // Support both single string and array of strings (for multi-line items)
+    const lines = Array.isArray(result) ? result : [result];
+    lines.forEach((text, lineIndex) => {
+      pdf.text(text, margin + 3 + (lineIndex > 0 ? 5 : 0), yPosition);
+      yPosition += lineHeight;
+    });
   });
 
   yPosition += sectionGap;
@@ -231,7 +235,18 @@ function addResourcesSection(pdf, realm, startY, margin) {
       sortedHoldings,
       (holding) => {
         const label = getHoldingLabel(holding, realm.holdings);
-        return `${label}: ${holding.name || 'Unknown'}`;
+        const lines = [`${label}: ${holding.name || 'Unknown'}`];
+
+        // Add non-None details
+        if (holding.details && Array.isArray(holding.details)) {
+          holding.details.forEach(detail => {
+            if (detail.type !== 'None' && detail.name) {
+              lines.push(`${detail.type}: ${detail.name}`);
+            }
+          });
+        }
+
+        return lines;
       },
       colors.holdings,
       yPosition,

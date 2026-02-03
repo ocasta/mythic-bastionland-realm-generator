@@ -57,11 +57,26 @@ export class Hex {
 }
 
 export class Holding {
-  constructor(row, col, isSeatOfPower = false, name = "Unknown") {
+  constructor(row, col, isSeatOfPower = false, name = "Unknown", details = null) {
     this.row = row;
     this.col = col;
     this.isSeatOfPower = isSeatOfPower;
     this.name = name;
+    // details is an array of 6 objects: { type: 'None'|'Holding'|'Bailey'|'Keep'|'Food'|etc., name: string }
+    // Default: first row is Keep (seat of power) or Holding (regular), rest are None
+    const defaultFirstType = isSeatOfPower ? 'Keep' : 'Holding';
+    this.details = details || [
+      { type: defaultFirstType, name: name },
+      { type: 'None', name: '' },
+      { type: 'None', name: '' },
+      { type: 'None', name: '' },
+      { type: 'None', name: '' },
+      { type: 'None', name: '' }
+    ];
+  }
+
+  static fromJSON(data) {
+    return new Holding(data.row, data.col, data.isSeatOfPower, data.name, data.details);
   }
 }
 
@@ -219,8 +234,8 @@ export class Realm {
     }
   }
 
-  addHolding(row, col, isSeatOfPower = false, name = "Unknown") {
-    const holding = new Holding(row, col, isSeatOfPower, name);
+  addHolding(row, col, isSeatOfPower = false, name = "Unknown", details = null) {
+    const holding = new Holding(row, col, isSeatOfPower, name, details);
     this.holdings.push(holding);
   }
 
@@ -380,7 +395,7 @@ export class Realm {
 
     // Import holdings, landmarks, and myths if they exist
     if (data.holdings) {
-      realm.holdings = data.holdings.map(h => new Holding(h.row, h.col, h.isSeatOfPower, h.name));
+      realm.holdings = data.holdings.map(h => Holding.fromJSON(h));
     }
     if (data.landmarks) {
       realm.landmarks = data.landmarks.map(l => new Landmark(l.row, l.col, l.type, l.name));

@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { terrainTypes, hexConfig, getTerrainTypesForStyle, hexUtils } from "../utils/hexUtils";
 import { Realm } from "../utils/realmModel";
-import { RealmGenerator as RealmGeneratorUtil, pickRandomLandmark, pickRandomLandmarkType, pickRandomMyth, pickRandomSeer, generateHoldingName } from "../utils/realmGenerator";
+import { RealmGenerator as RealmGeneratorUtil, pickRandomLandmark, pickRandomLandmarkType, pickRandomMyth, pickRandomSeer, generateHoldingName, generateKeepName, generateHoldingDetailName, generateDefaultHoldingDetails } from "../utils/realmGenerator";
 import { exportRealm, importRealm } from "../utils/realmExport";
 import { generateGMPDF, generatePlayerPDF } from "../utils/pdfExport";
 import RealmGenerationControls from "./tool/RealmGenerationControls";
@@ -217,32 +217,52 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     updateSelectedHex(row, col, newRealm);
   };
 
-  const addHolding = (row, col, isSeatOfPower = false, name = null) => {
+  const addHolding = (row, col, isSeatOfPower = false, name = null, details = null) => {
     const newRealm = realm.copy();
-    const holdingName = name ?? generateHoldingName(isSeatOfPower);
-    newRealm.addHolding(row, col, isSeatOfPower, holdingName);
+    const holdingDetails = details ?? generateDefaultHoldingDetails(isSeatOfPower);
+    const holdingName = name ?? holdingDetails[0].name;
+    newRealm.addHolding(row, col, isSeatOfPower, holdingName, holdingDetails);
     setRealm(newRealm);
     updateSelectedHex(row, col, newRealm);
   };
 
-  const updateHolding = (row, col, isSeatOfPower, name = "Unknown") => {
+  const updateHolding = (row, col, updates) => {
     const newRealm = realm.copy();
     const holdingIndex = newRealm.holdings.findIndex(h => h.row === row && h.col === col);
     if (holdingIndex !== -1) {
-      const seatOfPowerChanged = newRealm.holdings[holdingIndex].isSeatOfPower !== isSeatOfPower;
-      newRealm.holdings[holdingIndex].isSeatOfPower = isSeatOfPower;
-      newRealm.holdings[holdingIndex].name = seatOfPowerChanged ? generateHoldingName(isSeatOfPower) : name;
+      const holding = newRealm.holdings[holdingIndex];
+
+      if ('name' in updates) {
+        holding.name = updates.name;
+      }
+
+      if ('isSeatOfPower' in updates) {
+        holding.isSeatOfPower = updates.isSeatOfPower;
+      }
+
+      if ('details' in updates) {
+        holding.details = updates.details;
+      }
     }
     setRealm(newRealm);
     updateSelectedHex(row, col, newRealm);
   };
 
-  const regenerateHolding = (row, col) => {
+  const regenerateHolding = (row, col, detailIndex = null) => {
     const newRealm = realm.copy();
     const holdingIndex = newRealm.holdings.findIndex(h => h.row === row && h.col === col);
     if (holdingIndex !== -1) {
-      const isSeatOfPower = newRealm.holdings[holdingIndex].isSeatOfPower;
-      newRealm.holdings[holdingIndex].name = generateHoldingName(isSeatOfPower);
+      const holding = newRealm.holdings[holdingIndex];
+      const isSeatOfPower = holding.isSeatOfPower;
+
+      if (detailIndex !== null && holding.details && holding.details[detailIndex]) {
+        // Regenerate only the specific detail
+        const detailType = holding.details[detailIndex].type;
+        holding.details[detailIndex].name = generateHoldingDetailName(detailType);
+      } else {
+        // Regenerate all details (don't change main name)
+        holding.details = generateDefaultHoldingDetails(isSeatOfPower);
+      }
     }
     setRealm(newRealm);
     updateSelectedHex(row, col, newRealm);

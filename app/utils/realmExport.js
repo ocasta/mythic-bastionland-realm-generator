@@ -134,12 +134,35 @@ const createRealmFromImportData = (data) => {
   
   // Import holdings
   if (data.holdings) {
-    realm.holdings = data.holdings.map(holding => ({
-      row: holding.row,
-      col: holding.col,
-      isSeatOfPower: holding.isSeatOfPower || false,
-      name: holding.name || "Unknown"
-    }));
+    realm.holdings = data.holdings.map(holding => {
+      const name = holding.name || "Unknown";
+      const isSeatOfPower = holding.isSeatOfPower || false;
+      // Support both old format (no details) and new format (with details)
+      const defaultFirstType = isSeatOfPower ? 'Keep' : 'Holding';
+      let details = holding.details;
+      if (!details) {
+        details = [
+          { type: defaultFirstType, name: name },
+          { type: 'None', name: '' },
+          { type: 'None', name: '' },
+          { type: 'None', name: '' },
+          { type: 'None', name: '' },
+          { type: 'None', name: '' }
+        ];
+      } else if (details.length < 6) {
+        // Pad existing details to 6 items
+        while (details.length < 6) {
+          details.push({ type: 'None', name: '' });
+        }
+      }
+      return {
+        row: holding.row,
+        col: holding.col,
+        isSeatOfPower: isSeatOfPower,
+        name: name,
+        details: details
+      };
+    });
   }
   
   // Import landmarks
