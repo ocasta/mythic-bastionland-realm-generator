@@ -64,21 +64,20 @@ function cloneSVGForExport(svgElement, hideLabels) {
     barriersGroup.remove();
   }
 
-  // Remove all g elements that contain circles (these are the reference label groups)
-  const labelGroups = clonedSvg.querySelectorAll('g.pointer-events-none');
-  labelGroups.forEach(group => {
-    const circle = group.querySelector('circle');
-    if (circle) {
-      const fillColor = circle.getAttribute('fill');
-      // Blue circles (#2563eb) are regular holdings, gold (#d4af37) is Seat of Power - keep them but remove text
-      if (fillColor === '#2563eb' || fillColor === '#d4af37') {
-        // Remove the reference label text (S, H1, etc.)
-        const texts = group.querySelectorAll(':scope > text');
-        texts.forEach(text => text.remove());
-      } else {
-        // Remove landmarks (green) and myths (purple) entirely
-        group.remove();
-      }
+  // Remove landmarks and myths, keep holdings with their labels
+  // Find all circles that are feature markers and process their parent groups
+  const allCircles = clonedSvg.querySelectorAll('circle');
+  allCircles.forEach(circle => {
+    const fillColor = circle.getAttribute('fill');
+    const parent = circle.parentElement;
+
+    // Skip if not a feature marker (no fill or parent is not a g element)
+    if (!fillColor || !parent || parent.tagName !== 'g') return;
+
+    // Remove landmarks (green #22c55e) and myths (purple #9333ea) entirely
+    // Keep holdings (blue #2563eb and gold #fbbf24) with their labels
+    if (fillColor === '#22c55e' || fillColor === '#9333ea') {
+      parent.remove();
     }
   });
 
