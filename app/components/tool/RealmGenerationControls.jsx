@@ -83,7 +83,7 @@ const RealmGenerationControls = ({
                 <NumberStepper
                   value={holdings}
                   min={1}
-                  max={4}
+                  max={10}
                   onChange={onHoldingsChange}
                 />
               </div>
@@ -105,7 +105,7 @@ const RealmGenerationControls = ({
                 <NumberStepper
                   value={landmarks}
                   min={2}
-                  max={6}
+                  max={20}
                   onChange={onLandmarksChange}
                 />
               </div>
@@ -117,7 +117,7 @@ const RealmGenerationControls = ({
                 <NumberStepper
                   value={myths}
                   min={1}
-                  max={6}
+                  max={10}
                   onChange={onMythsChange}
                 />
               </div>

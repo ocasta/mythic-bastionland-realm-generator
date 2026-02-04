@@ -75,15 +75,15 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   };
 
   const handleHoldingsChange = (value) => {
-    setHoldingsCount(clampValue(value, 1, 4));
+    setHoldingsCount(clampValue(value, 1, 10));
   };
 
   const handleLandmarksChange = (value) => {
-    setLandmarksCount(clampValue(value, 2, 6));
+    setLandmarksCount(clampValue(value, 2, 20));
   };
 
   const handleMythsChange = (value) => {
-    setMythsCount(clampValue(value, 1, 6));
+    setMythsCount(clampValue(value, 1, 10));
   };
 
   const selectHex = (hex) => {
