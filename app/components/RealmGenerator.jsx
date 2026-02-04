@@ -57,15 +57,19 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const clampValue = (value, min, max) => Math.max(min, Math.min(max, value));
 
   const handleRowsChange = (value) => {
-    const nextRows = clampValue(value, 6, 12);
-    const newRealm = new Realm(nextRows, realm.cols, realm.name);
+    const nextRows = clampValue(value, 6, 18);
+    if (nextRows === realm.rows) return;
+    const newRealm = realm.copy();
+    newRealm.resize(nextRows, realm.cols);
     setRealm(newRealm);
     resetInteractionState();
   };
 
   const handleColsChange = (value) => {
-    const nextCols = clampValue(value, 6, 12);
-    const newRealm = new Realm(realm.rows, nextCols, realm.name);
+    const nextCols = clampValue(value, 6, 18);
+    if (nextCols === realm.cols) return;
+    const newRealm = realm.copy();
+    newRealm.resize(realm.rows, nextCols);
     setRealm(newRealm);
     resetInteractionState();
   };

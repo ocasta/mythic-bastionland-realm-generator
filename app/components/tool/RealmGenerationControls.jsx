@@ -59,7 +59,7 @@ const RealmGenerationControls = ({
           >
             ▶
           </span>
-          Generation Settings
+          Map Settings
         </button>
 
         {isExpanded && (
@@ -72,7 +72,7 @@ const RealmGenerationControls = ({
                 <NumberStepper
                   value={cols}
                   min={6}
-                  max={12}
+                  max={18}
                   onChange={onColsChange}
                 />
               </div>
@@ -94,7 +94,7 @@ const RealmGenerationControls = ({
                 <NumberStepper
                   value={rows}
                   min={6}
-                  max={12}
+                  max={18}
                   onChange={onRowsChange}
                 />
               </div>
