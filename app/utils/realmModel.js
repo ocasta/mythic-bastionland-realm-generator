@@ -427,20 +427,26 @@ export class Realm {
   }
 
   copy() {
-    const newRealm = new Realm(this.rows, this.cols);
+    const newRealm = new Realm(this.rows, this.cols, this.name);
 
     // Deep copy the hexMap array
     newRealm.hexMap = this.hexMap.map(row =>
       row.map(hex => new Hex(hex.row, hex.col, hex.terrainType))
     );
 
-    newRealm.holdings = [...this.holdings];
-    newRealm.landmarks = [...this.landmarks];
-    newRealm.myths = [...this.myths];
-    newRealm.barriers = [...this.barriers];
+    // Deep copy feature objects to prevent mutation of original realm
+    newRealm.holdings = this.holdings.map(h => new Holding(
+      h.row, h.col, h.isSeatOfPower, h.name,
+      h.details?.map(d => ({ ...d })),
+      h.ruler,
+      h.rulerDetails?.map(d => ({ ...d }))
+    ));
+    newRealm.landmarks = this.landmarks.map(l => new Landmark(l.row, l.col, l.type, l.name));
+    newRealm.myths = this.myths.map(m => new Myth(m.row, m.col, m.name));
+    newRealm.barriers = this.barriers.map(b => new Barrier(b.row, b.col, b.side));
     newRealm.rivers = this.rivers.map(r => {
       const riverCopy = new River(r.id);
-      riverCopy.path = [...r.path];
+      riverCopy.path = r.path.map(p => ({ ...p }));
       riverCopy.tributaryOf = r.tributaryOf;
       return riverCopy;
     });
@@ -465,18 +471,18 @@ export class Realm {
 
     if (rowDiff > 0) {
       // Adding rows: odd total → top, even total → bottom
-      rowShift = newRows % 2 === 1 ? 1 : 0;
+      rowShift = newRows % 2 === 1 ? rowDiff : 0;
     } else if (rowDiff < 0) {
       // Removing rows: odd old total → from top, even old total → from bottom
-      rowShift = this.rows % 2 === 1 ? -1 : 0;
+      rowShift = this.rows % 2 === 1 ? rowDiff : 0;
     }
 
     if (colDiff > 0) {
       // Adding columns: odd total → left, even total → right
-      colShift = newCols % 2 === 1 ? 1 : 0;
+      colShift = newCols % 2 === 1 ? colDiff : 0;
     } else if (colDiff < 0) {
       // Removing columns: odd old total → from left, even old total → from right
-      colShift = this.cols % 2 === 1 ? -1 : 0;
+      colShift = this.cols % 2 === 1 ? colDiff : 0;
     }
 
     // Create new hex map
