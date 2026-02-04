@@ -57,18 +57,30 @@ export class Hex {
 }
 
 export class Holding {
-  constructor(row, col, isSeatOfPower = false, name = "Unknown", details = null) {
+  constructor(row, col, isSeatOfPower = false, name = "Unknown", details = null, ruler = "", rulerDetails = null) {
     this.row = row;
     this.col = col;
     this.isSeatOfPower = isSeatOfPower;
     this.name = name;
     // details is an array of 6 objects: { type: 'None'|'Holding'|'Bailey'|'Keep'|'Food'|etc., name: string }
-    // Default: first row is Keep (seat of power) or Holding (regular), rest are None
-    const defaultFirstType = isSeatOfPower ? 'Keep' : 'Holding';
+    // Default: first 3 are Holding, Bailey, Keep; rest are None
+    // Note: actual generation happens in realmGenerator.js generateDefaultHoldingDetails()
     this.details = details || [
-      { type: defaultFirstType, name: name },
+      { type: 'Holding', name: name },
+      { type: 'Bailey', name: '' },
+      { type: 'Keep', name: '' },
       { type: 'None', name: '' },
       { type: 'None', name: '' },
+      { type: 'None', name: '' }
+    ];
+    this.ruler = ruler;
+    // rulerDetails is an array of 6 objects for ruler attributes
+    // Default: first 3 are Appearance, Voice, Personality; rest are None
+    // Note: actual generation happens in realmGenerator.js generateDefaultRulerDetails()
+    this.rulerDetails = rulerDetails || [
+      { type: 'Appearance', name: '' },
+      { type: 'Voice', name: '' },
+      { type: 'Personality', name: '' },
       { type: 'None', name: '' },
       { type: 'None', name: '' },
       { type: 'None', name: '' }
@@ -76,7 +88,7 @@ export class Holding {
   }
 
   static fromJSON(data) {
-    return new Holding(data.row, data.col, data.isSeatOfPower, data.name, data.details);
+    return new Holding(data.row, data.col, data.isSeatOfPower, data.name, data.details, data.ruler, data.rulerDetails);
   }
 }
 
@@ -234,8 +246,8 @@ export class Realm {
     }
   }
 
-  addHolding(row, col, isSeatOfPower = false, name = "Unknown", details = null) {
-    const holding = new Holding(row, col, isSeatOfPower, name, details);
+  addHolding(row, col, isSeatOfPower = false, name = "Unknown", details = null, ruler = "", rulerDetails = null) {
+    const holding = new Holding(row, col, isSeatOfPower, name, details, ruler, rulerDetails);
     this.holdings.push(holding);
   }
 

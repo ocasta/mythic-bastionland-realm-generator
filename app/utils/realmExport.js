@@ -155,12 +155,31 @@ const createRealmFromImportData = (data) => {
           details.push({ type: 'None', name: '' });
         }
       }
+      // Handle ruler and rulerDetails
+      const ruler = holding.ruler || '';
+      let rulerDetails = holding.rulerDetails;
+      if (!rulerDetails) {
+        rulerDetails = [
+          { type: 'None', name: '' },
+          { type: 'None', name: '' },
+          { type: 'None', name: '' },
+          { type: 'None', name: '' },
+          { type: 'None', name: '' },
+          { type: 'None', name: '' }
+        ];
+      } else if (rulerDetails.length < 6) {
+        while (rulerDetails.length < 6) {
+          rulerDetails.push({ type: 'None', name: '' });
+        }
+      }
       return {
         row: holding.row,
         col: holding.col,
         isSeatOfPower: isSeatOfPower,
         name: name,
-        details: details
+        details: details,
+        ruler: ruler,
+        rulerDetails: rulerDetails
       };
     });
   }

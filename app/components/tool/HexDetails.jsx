@@ -65,16 +65,16 @@ const HexDetails = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-300 dark:border-gray-600">
-      <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
+      <h3 className="text-sm font-semibold mb-3 text-gray-900 dark:text-white">
         Hex Details
       </h3>
       {selectedHex ? (
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Coordinates
             </label>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-gray-600 dark:text-gray-400">
               Row: {selectedHex.row}, Col: {selectedHex.col}
             </p>
           </div>
@@ -87,7 +87,7 @@ const HexDetails = ({
 
           {/* Feature Section */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Feature
             </label>
             {hexFeature ? (
@@ -124,7 +124,7 @@ const HexDetails = ({
               </div>
             ) : (
               <div className="space-y-2">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   No feature on this hex
                 </p>
                 <div className="flex space-x-2">
@@ -166,7 +166,7 @@ const HexDetails = ({
           {/* Rivers Section */}
           {hexRivers.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Rivers
               </label>
               <div className="space-y-2">
@@ -175,7 +175,7 @@ const HexDetails = ({
                     key={river.id}
                     className="flex items-center justify-between p-2 bg-cyan-50 dark:bg-cyan-900 rounded"
                   >
-                    <span className="text-sm text-cyan-700 dark:text-cyan-300">
+                    <span className="text-xs text-cyan-700 dark:text-cyan-300">
                       River {river.id}
                       {river.tributaryOf && ` (tributary of River ${river.tributaryOf})`}
                     </span>
@@ -192,7 +192,7 @@ const HexDetails = ({
           )}
         </div>
       ) : (
-        <p className="text-gray-500 dark:text-gray-400 text-sm">
+        <p className="text-gray-500 dark:text-gray-400 text-xs">
           Select a hex on the map to view its details
         </p>
       )}

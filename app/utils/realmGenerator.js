@@ -125,6 +125,79 @@ const newsMoods = [
   "Adoring", "Nostalgic", "Unified", "Bleak", "Solemn", "Optimistic"
 ];
 
+// Ruler detail tables
+const appearanceCol1 = [
+  "Delicate", "Short", "Robust", "Hard", "Haggard", "Cold",
+  "Warm", "Youthful", "Soft", "Sickly", "Tall", "Rough"
+];
+const appearanceCol2 = [
+  "Armoured", "Tattered", "Vibrant", "Crude", "Eclectic", "Traditional",
+  "Comfortable", "Gaudy", "Drab", "Decorated", "Functional", "Elegant"
+];
+
+const voiceCol1 = [
+  "Whispering", "Soothing", "Smooth", "Flat", "Mumbled", "Weak",
+  "Strong", "Hesitant", "Melodic", "Gravelly", "Erratic", "Booming"
+];
+const voiceCol2 = [
+  "Formal", "Poetic", "Precise", "Intense", "Rambling", "Detached",
+  "Passionate", "Terse", "Relaxed", "Blunt", "Boisterous", "Friendly"
+];
+
+const personalityCol1 = [
+  "Cautious", "Spiritual", "Intellectual", "Ambitious", "Serene", "Righteous",
+  "Empathetic", "Unstable", "Prying", "Melancholic", "Cynical", "Rash"
+];
+const personalityCol2 = [
+  "Botany", "History", "Music", "Gambling", "Animals", "Art",
+  "Cookery", "Craft", "Fishing", "Fashion", "Hunting", "Stories"
+];
+
+const relationshipCol1 = [
+  "Adoring", "Reluctant", "Secret", "Estranged", "Hateful", "Distant",
+  "Harmonious", "Intimate", "Recent", "Sworn", "Tumultuous", "Resentful"
+];
+const relationshipCol2 = [
+  "Kin", "Friend", "Lover", "Spouse", "Supporter", "Ally",
+  "Rival", "Successor", "Mentor", "Peer", "Enemy", "Guardian"
+];
+
+const desireCol1 = [
+  "Escape", "Wealth", "Status", "Knowledge", "Mastery", "Heirloom",
+  "Marriage", "Truth", "Travel", "Power", "Security", "Forgiveness"
+];
+const desireCol2 = [
+  "Freedom", "Love", "Legacy", "Recovery", "Revenge", "Duty",
+  "Fear", "Guilt", "Recognition", "Defiance", "Curiosity", "Hatred"
+];
+
+const backgroundCol1 = [
+  "Deprived", "Pious", "Outcast", "Military", "Insular", "Nomadic",
+  "Drudgery", "Mercantile", "Feral", "Prestigious", "Academic", "Pampered"
+];
+const backgroundCol2 = [
+  "War", "Migration", "Riding", "Study", "Exile", "Joy",
+  "Sickness", "Escape", "Injury", "Friendship", "Execution", "Romance"
+];
+
+const ailmentCol1 = [
+  "Hidden", "Mild", "Intermittent", "Growing", "Medicated", "Denied",
+  "Unexplained", "Constant", "Diminishing", "Permanent", "Debilitating", "Obvious"
+];
+const ailmentCol2 = [
+  "Insomnia", "Migraines", "Arthritis", "Nausea", "Fixation", "Blindness",
+  "Deafness", "Melancholy", "Shaking", "Frailty", "Coughing", "Lethargy"
+];
+
+const heraldryCol1 = [
+  "Light", "Hot", "Earthy", "Rich", "Metallic", "Brilliant",
+  "Grey", "Jewelled", "Subdued", "Airy", "Cold", "Dark"
+];
+const heraldryCol2 = [
+  "Beast", "Bird", "Fish", "Weapon", "Crown", "Tree",
+  "Flower", "Bodypart", "Structure", "Ring", "Tool", "Star"
+];
+
 export function generateHoldingName(isSeatOfPower = false) {
   if (isSeatOfPower) {
     const featureRoll = Math.floor(Math.random() * 12);
@@ -183,7 +256,92 @@ export function generateNewsName() {
   return `${newsEvents[eventRoll]} ${newsMoods[moodRoll]}`;
 }
 
+export function generateAppearanceName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${appearanceCol1[roll1]} ${appearanceCol2[roll2]}`;
+}
+
+export function generateVoiceName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${voiceCol1[roll1]} ${voiceCol2[roll2]}`;
+}
+
+export function generatePersonalityName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${personalityCol1[roll1]} ${personalityCol2[roll2]}`;
+}
+
+export function generateRelationshipName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${relationshipCol1[roll1]} ${relationshipCol2[roll2]}`;
+}
+
+export function generateDesireName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${desireCol1[roll1]} ${desireCol2[roll2]}`;
+}
+
+export function generateBackgroundName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${backgroundCol1[roll1]} ${backgroundCol2[roll2]}`;
+}
+
+export function generateAilmentName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${ailmentCol1[roll1]} ${ailmentCol2[roll2]}`;
+}
+
+export function generateHeraldryName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${heraldryCol1[roll1]} ${heraldryCol2[roll2]}`;
+}
+
 export const holdingDetailTypes = ['None', 'Holding', 'Bailey', 'Keep', 'Food', 'Goods', 'Luxuries', 'Drama', 'Woe', 'News'];
+
+export const rulerDetailTypes = ['None', 'Appearance', 'Voice', 'Personality', 'Relationship', 'Desire', 'Background', 'Ailment', 'Heraldry'];
+
+export function generateRulerDetailName(detailType) {
+  switch (detailType) {
+    case 'Appearance':
+      return generateAppearanceName();
+    case 'Voice':
+      return generateVoiceName();
+    case 'Personality':
+      return generatePersonalityName();
+    case 'Relationship':
+      return generateRelationshipName();
+    case 'Desire':
+      return generateDesireName();
+    case 'Background':
+      return generateBackgroundName();
+    case 'Ailment':
+      return generateAilmentName();
+    case 'Heraldry':
+      return generateHeraldryName();
+    case 'None':
+    default:
+      return '';
+  }
+}
+
+export function generateDefaultRulerDetails() {
+  return [
+    { type: 'Appearance', name: generateAppearanceName() },
+    { type: 'Voice', name: generateVoiceName() },
+    { type: 'Personality', name: generatePersonalityName() },
+    { type: 'None', name: '' },
+    { type: 'None', name: '' },
+    { type: 'None', name: '' }
+  ];
+}
 
 export function generateHoldingDetailName(detailType) {
   switch (detailType) {
@@ -212,14 +370,10 @@ export function generateHoldingDetailName(detailType) {
 }
 
 export function generateDefaultHoldingDetails(isSeatOfPower) {
-  // First row: Keep for Seat of Power, Holding for regular
-  const firstType = isSeatOfPower ? 'Keep' : 'Holding';
-  const firstName = isSeatOfPower ? generateKeepName() : generateHoldingName(false);
-
   return [
-    { type: firstType, name: firstName },
-    { type: 'None', name: '' },
-    { type: 'None', name: '' },
+    { type: 'Holding', name: generateHoldingName(isSeatOfPower) },
+    { type: 'Bailey', name: generateBaileyName() },
+    { type: 'Keep', name: generateKeepName() },
     { type: 'None', name: '' },
     { type: 'None', name: '' },
     { type: 'None', name: '' }
@@ -434,7 +588,8 @@ export class RealmGenerator {
         const isSeatOfPower = i === 0;
         const details = generateDefaultHoldingDetails(isSeatOfPower);
         const holdingName = details[0].name;
-        realm.addHolding(position.row, position.col, isSeatOfPower, holdingName, details);
+        const rulerDetails = generateDefaultRulerDetails();
+        realm.addHolding(position.row, position.col, isSeatOfPower, holdingName, details, "", rulerDetails);
       } else {
         console.warn(`Could not place holding ${i + 1} due to placement constraints`);
       }

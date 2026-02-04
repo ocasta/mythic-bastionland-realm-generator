@@ -213,13 +213,155 @@ function addFeatureSection(pdf, title, items, formatItem, color, startY, margin)
 }
 
 /**
- * Adds the resources section to a GM PDF
+ * Formats a holding into multiple lines of text
  */
-function addResourcesSection(pdf, realm, startY, margin) {
+function formatHoldingLines(holding, realm) {
+  const label = getHoldingLabel(holding, realm.holdings);
+  const lines = [`${label}: ${holding.name || 'Unknown'}`];
+
+  // Add ruler name first (if present)
+  if (holding.ruler) {
+    lines.push(`Ruler: ${holding.ruler}`);
+  }
+
+  // Add non-None ruler details
+  if (holding.rulerDetails && Array.isArray(holding.rulerDetails)) {
+    holding.rulerDetails.forEach(detail => {
+      if (detail.type !== 'None' && detail.name) {
+        lines.push(`  ${detail.type}: ${detail.name}`);
+      }
+    });
+  }
+
+  // Add separator if there's ruler info and holding details
+  const hasRulerInfo = holding.ruler || (holding.rulerDetails && holding.rulerDetails.some(d => d.type !== 'None' && d.name));
+  const hasHoldingDetails = holding.details && holding.details.some(d => d.type !== 'None' && d.name);
+  if (hasRulerInfo && hasHoldingDetails) {
+    lines.push('---');
+  }
+
+  // Add non-None holding details
+  if (holding.details && Array.isArray(holding.details)) {
+    holding.details.forEach(detail => {
+      if (detail.type !== 'None' && detail.name) {
+        lines.push(`${detail.type}: ${detail.name}`);
+      }
+    });
+  }
+
+  return lines;
+}
+
+/**
+ * Adds a section with heading and underline, then items in columns
+ * @returns {number} The Y position after this section
+ */
+function addGridSection(pdf, title, items, formatItem, color, startY, margin, pageWidth, numColumns = 4) {
+  if (!items || items.length === 0) {
+    return startY;
+  }
+
+  const { lineHeight, sectionGap, sectionFontSize, contentFontSize, colors } = PDF_STYLES;
+  let yPosition = startY;
+
+  // Section title on the left
+  pdf.setFontSize(sectionFontSize);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(...color);
+  pdf.text(title, margin, yPosition);
+
+  // Underline running full width
+  yPosition += 1;
+  pdf.setDrawColor(...color);
+  pdf.setLineWidth(0.3);
+  pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += lineHeight;
+
+  // Calculate column positions
+  const contentWidth = pageWidth - margin * 2;
+  const columnWidth = contentWidth / numColumns;
+
+  // Format all items
+  const formattedItems = items.map((item, index) => {
+    const result = formatItem(item, index);
+    return Array.isArray(result) ? result : [result];
+  });
+
+  // Calculate heights for each item (number of lines)
+  const itemHeights = formattedItems.map(lines => lines.length * lineHeight);
+
+  // Distribute items into columns, trying to balance heights
+  // Simple approach: fill columns left to right
+  const columns = Array.from({ length: numColumns }, () => []);
+  const columnHeights = Array(numColumns).fill(0);
+
+  formattedItems.forEach((lines, index) => {
+    // Find the column with minimum height
+    let minCol = 0;
+    for (let c = 1; c < numColumns; c++) {
+      if (columnHeights[c] < columnHeights[minCol]) {
+        minCol = c;
+      }
+    }
+    columns[minCol].push({ lines, height: itemHeights[index] });
+    columnHeights[minCol] += itemHeights[index] + lineHeight; // Add gap between items
+  });
+
+  // Find the maximum column height
+  const maxColumnHeight = Math.max(...columnHeights);
+
+  // Render each column
+  pdf.setFontSize(contentFontSize);
+  pdf.setTextColor(...colors.text);
+
+  columns.forEach((columnItems, colIndex) => {
+    const colX = margin + colIndex * columnWidth;
+    let colY = yPosition;
+
+    columnItems.forEach(({ lines }, itemIndex) => {
+      lines.forEach((line, lineIndex) => {
+        // Truncate long lines to fit in column
+        const maxWidth = columnWidth - 2;
+        let displayText = line;
+        while (pdf.getTextWidth(displayText) > maxWidth && displayText.length > 3) {
+          displayText = displayText.slice(0, -4) + '...';
+        }
+
+        // First line of each item: bold the label (e.g., "S:", "H1:", "L1:", "M1:")
+        if (lineIndex === 0 && displayText.includes(':')) {
+          const colonIndex = displayText.indexOf(':');
+          const label = displayText.substring(0, colonIndex + 1);
+          const rest = displayText.substring(colonIndex + 1);
+
+          // Draw label in bold
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(label, colX, colY);
+          const labelWidth = pdf.getTextWidth(label);
+
+          // Draw rest in normal
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(rest, colX + labelWidth, colY);
+        } else {
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(displayText, colX, colY);
+        }
+        colY += lineHeight;
+      });
+      colY += lineHeight * 0.5; // Gap between items
+    });
+  });
+
+  return yPosition + maxColumnHeight + sectionGap;
+}
+
+/**
+ * Adds all resources (holdings, landmarks, myths) to page 2 in grid layout
+ */
+function addResourcesGridPage(pdf, realm, startY, margin, pageWidth) {
   const { colors } = PDF_STYLES;
   let yPosition = startY;
 
-  // Holdings section
+  // Holdings section (at top)
   if (realm.holdings && realm.holdings.length > 0) {
     // Sort holdings: Seat of Power first, then by index
     const sortedHoldings = [...realm.holdings].sort((a, b) => {
@@ -228,54 +370,45 @@ function addResourcesSection(pdf, realm, startY, margin) {
       return 0;
     });
 
-    yPosition = addFeatureSection(
+    yPosition = addGridSection(
       pdf,
       'Holdings',
       sortedHoldings,
-      (holding) => {
-        const label = getHoldingLabel(holding, realm.holdings);
-        const lines = [`${label}: ${holding.name || 'Unknown'}`];
-
-        // Add non-None details
-        if (holding.details && Array.isArray(holding.details)) {
-          holding.details.forEach(detail => {
-            if (detail.type !== 'None' && detail.name) {
-              lines.push(`${detail.type}: ${detail.name}`);
-            }
-          });
-        }
-
-        return lines;
-      },
+      (holding) => formatHoldingLines(holding, realm),
       colors.holdings,
       yPosition,
-      margin
+      margin,
+      pageWidth,
+      4  // 4 columns for holdings
     );
   }
 
-  // Landmarks section
+  // Landmarks section (in middle)
   if (realm.landmarks && realm.landmarks.length > 0) {
-    yPosition = addFeatureSection(
+    yPosition = addGridSection(
       pdf,
       'Landmarks',
       realm.landmarks,
       (landmark, index) => {
         const label = `L${index + 1}`;
-        let text = `${label}: ${landmark.type || 'Unknown'} - ${landmark.name || 'Unknown'}`;
+        let text = `${label}: ${landmark.type || 'Unknown'}`;
+        const lines = [text, `  ${landmark.name || 'Unknown'}`];
         if (landmark.seer) {
-          text += ` (${landmark.seer})`;
+          lines.push(`  (${landmark.seer})`);
         }
-        return text;
+        return lines;
       },
       colors.landmarks,
       yPosition,
-      margin
+      margin,
+      pageWidth,
+      4  // 4 columns for landmarks
     );
   }
 
-  // Myths section
+  // Myths section (at bottom)
   if (realm.myths && realm.myths.length > 0) {
-    yPosition = addFeatureSection(
+    yPosition = addGridSection(
       pdf,
       'Myths',
       realm.myths,
@@ -285,7 +418,9 @@ function addResourcesSection(pdf, realm, startY, margin) {
       },
       colors.myths,
       yPosition,
-      margin
+      margin,
+      pageWidth,
+      4  // 4 columns for myths
     );
   }
 
@@ -359,40 +494,49 @@ export async function generateGMPDF({ mapContainer, realm }) {
   const pageHeight = pdf.internal.pageSize.getHeight();
   const { margin, titleFontSize } = PDF_STYLES;
 
-  // Title centered at top
+  // Page 1: Map only (full page, centered)
   pdf.setFontSize(titleFontSize);
   pdf.setFont('helvetica', 'bold');
   pdf.text(realm.name || 'Unnamed Realm', pageWidth / 2, margin + 5, { align: 'center' });
 
   const contentTop = margin + 12;
   const contentHeight = pageHeight - contentTop - margin;
+  const contentWidth = pageWidth - margin * 2;
 
-  // Split page: map on left (75%), resources on right (25%)
-  const mapWidth = (pageWidth - margin * 3) * 0.75;
-  const resourcesX = margin + mapWidth + margin;
-
-  // Add map (centered vertically in available space)
+  // Add map (centered on page)
   if (mapContainer) {
     const svgElement = mapContainer.querySelector('svg');
     if (svgElement) {
       try {
         const canvas = await svgToCanvas(svgElement);
         const imgData = canvas.toDataURL('image/png');
-        const { imgWidth, imgHeight } = calculateMapDimensions(canvas, mapWidth, contentHeight);
+        const { imgWidth, imgHeight } = calculateMapDimensions(canvas, contentWidth, contentHeight);
 
-        // Center map vertically
+        // Center map horizontally and vertically
+        const xOffset = (pageWidth - imgWidth) / 2;
         const yOffset = contentTop + (contentHeight - imgHeight) / 2;
-        pdf.addImage(imgData, 'PNG', margin, yOffset, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'PNG', xOffset, yOffset, imgWidth, imgHeight);
       } catch (error) {
         console.error('Error capturing hex map:', error);
       }
     }
   }
 
-  // Add Resources section on the right
-  addResourcesSection(pdf, realm, contentTop, resourcesX);
+  // Add footer to page 1
+  addFooter(pdf);
 
-  // Add footer
+  // Page 2: Holdings, Landmarks, Myths in grid layout
+  pdf.addPage();
+
+  // Title for page 2
+  pdf.setFontSize(titleFontSize);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`${realm.name || 'Unnamed Realm'} - Resources`, pageWidth / 2, margin + 5, { align: 'center' });
+
+  // Add all resources in grid layout
+  addResourcesGridPage(pdf, realm, contentTop, margin, pageWidth);
+
+  // Add footer to page 2
   addFooter(pdf);
 
   // Open PDF in new window

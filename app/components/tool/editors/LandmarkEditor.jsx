@@ -10,7 +10,7 @@ const LandmarkEditor = ({ landmark, selectedHex, onUpdate, onRemove, onRegenerat
   return (
     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
       <div className="flex items-center justify-between mb-2">
-        <span className="font-medium text-sm text-gray-900 dark:text-white">
+        <span className="font-medium text-xs text-gray-900 dark:text-white">
           Landmark
         </span>
         <div className="flex space-x-2">
@@ -36,7 +36,7 @@ const LandmarkEditor = ({ landmark, selectedHex, onUpdate, onRemove, onRegenerat
           <select
             value={landmark.type}
             onChange={(e) => handleTypeChange(e.target.value)}
-            className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           >
             {landmarkTypes.map((type) => (
               <option key={type} value={type}>
@@ -60,7 +60,7 @@ const LandmarkEditor = ({ landmark, selectedHex, onUpdate, onRemove, onRegenerat
                 e.target.value
               )
             }
-            className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             placeholder="Landmark name"
           />
         </div>
@@ -81,7 +81,7 @@ const LandmarkEditor = ({ landmark, selectedHex, onUpdate, onRemove, onRegenerat
                   e.target.value
                 )
               }
-              className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               placeholder="Landmark seer"
             />
           </div>
