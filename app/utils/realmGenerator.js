@@ -460,6 +460,81 @@ export class RealmGenerator {
     return realm;
   }
 
+  /**
+   * Check if a realm is completely empty (all hexes have "empty" terrain and no features)
+   */
+  static isRealmEmpty(realm) {
+    // Check if all hexes are empty terrain
+    for (let row = 0; row < realm.rows; row++) {
+      for (let col = 0; col < realm.cols; col++) {
+        const hex = realm.getHex(row, col);
+        if (hex.terrainType.type !== 'empty') {
+          return false;
+        }
+      }
+    }
+    // Also check for any features
+    return realm.holdings.length === 0 &&
+           realm.landmarks.length === 0 &&
+           realm.myths.length === 0;
+  }
+
+  /**
+   * Fill empty hexes in an existing realm and add features to reach configured totals.
+   * If the realm is completely empty, generates a full new realm.
+   */
+  static fillRealm(realm, terrainStrategy, options = {}) {
+    const holdings = options.holdings ?? 4;
+    const landmarks = options.landmarks ?? 4;
+    const myths = options.myths ?? 6;
+    const useQuickStartLists = options.useQuickStartLists ?? false;
+
+    // If realm is completely empty, generate a full new realm
+    if (this.isRealmEmpty(realm)) {
+      RealmGenerator.generateTerrain(realm, terrainStrategy);
+      RealmGenerator.generateHoldings(realm, holdings);
+      RealmGenerator.generateLandmarks(realm, landmarks, useQuickStartLists);
+      RealmGenerator.generateMyths(realm, myths, useQuickStartLists);
+      return realm;
+    }
+
+    // Fill only empty hexes with terrain
+    RealmGenerator.fillEmptyTerrain(realm, terrainStrategy);
+
+    // Add features to reach configured totals
+    const holdingsToAdd = Math.max(0, holdings - realm.holdings.length);
+    const landmarksToAdd = Math.max(0, landmarks - realm.landmarks.length);
+    const mythsToAdd = Math.max(0, myths - realm.myths.length);
+
+    // Generate features in order of strictest constraints first
+    if (holdingsToAdd > 0) {
+      RealmGenerator.generateHoldings(realm, holdingsToAdd);
+    }
+    if (landmarksToAdd > 0) {
+      RealmGenerator.generateLandmarks(realm, landmarksToAdd, useQuickStartLists);
+    }
+    if (mythsToAdd > 0) {
+      RealmGenerator.generateMyths(realm, mythsToAdd, useQuickStartLists);
+    }
+
+    return realm;
+  }
+
+  /**
+   * Fill only empty hexes in a realm with terrain
+   */
+  static fillEmptyTerrain(realm, terrainStrategy) {
+    if (terrainStrategy === "random") {
+      return TerrainGenerator.fillEmptyWithRandomTerrain(realm);
+    } else if (terrainStrategy === "balanced") {
+      return TerrainGenerator.fillEmptyWithBalancedTerrain(realm);
+    } else if (terrainStrategy === "clustered") {
+      return TerrainGenerator.fillEmptyWithClusteredTerrain(realm);
+    } else if (terrainStrategy === "weighted") {
+      return TerrainGenerator.fillEmptyWithWeightedTerrain(realm);
+    }
+  }
+
   static pickRandomLocation(realm) {
     const row = Math.floor(Math.random() * realm.rows);
     const col = Math.floor(Math.random() * realm.cols);
@@ -569,16 +644,26 @@ export class RealmGenerator {
   }
 
   /**
-   * Find a valid position with multiple attempts
+   * Find a valid position by checking all positions and picking randomly from valid ones
    */
-  static findValidPosition(realm, validationFn, maxAttempts = 100) {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const { row, col } = this.pickRandomLocation(realm);
-      if (validationFn(realm, row, col)) {
-        return { row, col };
+  static findValidPosition(realm, validationFn) {
+    // Get all valid positions
+    const validPositions = [];
+    for (let row = 0; row < realm.rows; row++) {
+      for (let col = 0; col < realm.cols; col++) {
+        if (validationFn(realm, row, col)) {
+          validPositions.push({ row, col });
+        }
       }
     }
-    return null; // Could not find valid position
+
+    if (validPositions.length === 0) {
+      return null;
+    }
+
+    // Pick a random valid position
+    const randomIndex = Math.floor(Math.random() * validPositions.length);
+    return validPositions[randomIndex];
   }
 
   static generateHoldings(realm, count = 4) {
@@ -597,11 +682,23 @@ export class RealmGenerator {
   }
 
   static generateLandmarks(realm, count = 4, useQuickStartOnly = false) {
+    // Get existing landmark names to avoid duplicates
+    const existingNames = new Set(realm.landmarks.map(l => l.name));
+
     for (let i = 0; i < count; i++) {
       const position = this.findValidPosition(realm, this.isValidLandmarkPosition.bind(this));
       if (position) {
         const type = pickRandomLandmarkType();
-        const label = pickRandomLandmark(type);
+
+        // Try to pick a unique landmark name (up to 50 attempts)
+        let label;
+        let attempts = 0;
+        do {
+          label = pickRandomLandmark(type);
+          attempts++;
+        } while (existingNames.has(label) && attempts < 50);
+
+        existingNames.add(label);
         const seer = type === "Sanctum" ? pickRandomSeer(useQuickStartOnly) : null;
         realm.addLandmark(position.row, position.col, type, label, seer);
       } else {
@@ -611,10 +708,21 @@ export class RealmGenerator {
   }
 
   static generateMyths(realm, count = 6, useQuickStartOnly = false) {
+    // Get existing myth names to avoid duplicates
+    const existingNames = new Set(realm.myths.map(m => m.name));
+
     for (let i = 0; i < count; i++) {
       const position = this.findValidPosition(realm, this.isValidMythPosition.bind(this));
       if (position) {
-        const name = pickRandomMyth(useQuickStartOnly);
+        // Try to pick a unique myth name (up to 50 attempts)
+        let name;
+        let attempts = 0;
+        do {
+          name = pickRandomMyth(useQuickStartOnly);
+          attempts++;
+        } while (existingNames.has(name) && attempts < 50);
+
+        existingNames.add(name);
         realm.addMyth(position.row, position.col, name);
       } else {
         console.warn(`Could not place myth ${i + 1} due to placement constraints`);
@@ -884,6 +992,189 @@ export class TerrainGenerator {
         }
       }
     }
+
+    return realm;
+  }
+
+  /**
+   * Get all empty hex positions in a realm
+   */
+  static getEmptyPositions(realm) {
+    const positions = [];
+    for (let row = 0; row < realm.rows; row++) {
+      for (let col = 0; col < realm.cols; col++) {
+        const hex = realm.getHex(row, col);
+        if (hex.terrainType.type === 'empty') {
+          positions.push({ row, col });
+        }
+      }
+    }
+    return positions;
+  }
+
+  /**
+   * Fill only empty hexes with random terrain
+   */
+  static fillEmptyWithRandomTerrain(realm) {
+    const availableTerrains = this.getAvailableTerrains();
+    const emptyPositions = this.getEmptyPositions(realm);
+
+    emptyPositions.forEach(pos => {
+      const randomTerrain = this.selectRandomTerrain(availableTerrains);
+      realm.setHex(pos.row, pos.col, randomTerrain);
+    });
+
+    return realm;
+  }
+
+  /**
+   * Fill only empty hexes with balanced terrain
+   */
+  static fillEmptyWithBalancedTerrain(realm) {
+    const availableTerrains = this.getAvailableTerrains();
+    const emptyPositions = this.shuffleArray(this.getEmptyPositions(realm));
+
+    if (emptyPositions.length === 0) return realm;
+
+    let positionIndex = 0;
+
+    // First, try to place at least one of each terrain type
+    availableTerrains.forEach((terrain) => {
+      if (positionIndex < emptyPositions.length) {
+        const pos = emptyPositions[positionIndex];
+        realm.setHex(pos.row, pos.col, terrain);
+        positionIndex++;
+      }
+    });
+
+    // Fill remaining positions with random terrain types
+    while (positionIndex < emptyPositions.length) {
+      const pos = emptyPositions[positionIndex];
+      const randomTerrain = this.selectRandomTerrain(availableTerrains);
+      realm.setHex(pos.row, pos.col, randomTerrain);
+      positionIndex++;
+    }
+
+    return realm;
+  }
+
+  /**
+   * Fill only empty hexes with weighted terrain
+   */
+  static fillEmptyWithWeightedTerrain(realm, weights = null) {
+    const availableTerrains = this.getAvailableTerrains();
+    const emptyPositions = this.getEmptyPositions(realm);
+
+    if (emptyPositions.length === 0) return realm;
+
+    const defaultWeights = {
+      plains: 0.35,
+      forest: 0.25,
+      mountain: 0.18,
+      water: 0.15,
+      desert: 0.04,
+      swamp: 0.03,
+    };
+
+    const terrainWeights = weights || defaultWeights;
+
+    // Create weighted array
+    const weightedTerrains = [];
+    availableTerrains.forEach((terrain) => {
+      const weight = terrainWeights[terrain.type] || 0.1;
+      const count = Math.floor(weight * 100);
+      for (let i = 0; i < count; i++) {
+        weightedTerrains.push(terrain);
+      }
+    });
+
+    emptyPositions.forEach(pos => {
+      const randomTerrain = this.selectRandomTerrain(weightedTerrains);
+      realm.setHex(pos.row, pos.col, randomTerrain);
+    });
+
+    return realm;
+  }
+
+  /**
+   * Fill only empty hexes with clustered terrain
+   */
+  static fillEmptyWithClusteredTerrain(realm) {
+    const emptyPositions = this.getEmptyPositions(realm);
+    if (emptyPositions.length === 0) return realm;
+
+    const availableTerrains = this.getAvailableTerrains();
+    const visited = new Set();
+
+    // Mark non-empty hexes as visited
+    for (let row = 0; row < realm.rows; row++) {
+      for (let col = 0; col < realm.cols; col++) {
+        const hex = realm.getHex(row, col);
+        if (hex.terrainType.type !== 'empty') {
+          visited.add(`${row},${col}`);
+        }
+      }
+    }
+
+    // Generate seed points only in empty hexes
+    const seedCount = Math.min(
+      availableTerrains.length,
+      Math.floor(emptyPositions.length / 4)
+    );
+    const shuffledEmpty = this.shuffleArray(emptyPositions);
+    const seeds = [];
+
+    for (let i = 0; i < seedCount && i < shuffledEmpty.length; i++) {
+      const pos = shuffledEmpty[i];
+      const terrain = availableTerrains[i % availableTerrains.length];
+      seeds.push({ row: pos.row, col: pos.col, terrain });
+    }
+
+    // Grow clusters from seed points
+    seeds.forEach((seed) => {
+      const queue = [seed];
+      const clusterSize = Math.floor(Math.random() * 8) + 3;
+      let grown = 0;
+
+      while (queue.length > 0 && grown < clusterSize) {
+        const current = queue.shift();
+        const key = `${current.row},${current.col}`;
+
+        if (
+          current.row >= 0 &&
+          current.row < realm.rows &&
+          current.col >= 0 &&
+          current.col < realm.cols &&
+          !visited.has(key)
+        ) {
+          visited.add(key);
+          realm.setHex(current.row, current.col, seed.terrain);
+          grown++;
+
+          const neighbors = [
+            { row: current.row - 1, col: current.col },
+            { row: current.row + 1, col: current.col },
+            { row: current.row, col: current.col - 1 },
+            { row: current.row, col: current.col + 1 },
+          ];
+
+          neighbors.forEach((neighbor) => {
+            if (Math.random() < 0.6) {
+              queue.push({ ...neighbor, terrain: seed.terrain });
+            }
+          });
+        }
+      }
+    });
+
+    // Fill remaining empty hexes with random terrain
+    emptyPositions.forEach(pos => {
+      const key = `${pos.row},${pos.col}`;
+      if (!visited.has(key)) {
+        const randomTerrain = this.selectRandomTerrain(availableTerrains);
+        realm.setHex(pos.row, pos.col, randomTerrain);
+      }
+    });
 
     return realm;
   }

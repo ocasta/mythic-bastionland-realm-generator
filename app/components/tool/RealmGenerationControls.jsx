@@ -157,25 +157,25 @@ const RealmGenerationControls = ({
           onClick={onGenerateRandom}
           className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
-          Generate Random
+          Fill Random
         </button>
         <button
           onClick={onGenerateBalanced}
           className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
         >
-          Generate Balanced
+          Fill Balanced
         </button>
         <button
           onClick={onGenerateClustered}
           className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600"
         >
-          Generate Clustered
+          Fill Clustered
         </button>
         <button
           onClick={onGenerateWeighted}
           className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600"
         >
-          Generate Weighted
+          Fill Weighted
         </button>
         <button
           onClick={onClear}

@@ -147,10 +147,9 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     setRealm(newRealm);
   };
 
-  const generateRandomTerrain = () => {
-    const newRealm = RealmGeneratorUtil.generateRealm("random", {
-      rows: realm.rows,
-      cols: realm.cols,
+  const fillRandomTerrain = () => {
+    const newRealm = realm.copy();
+    RealmGeneratorUtil.fillRealm(newRealm, "random", {
       holdings: holdingsCount,
       landmarks: landmarksCount,
       myths: mythsCount,
@@ -159,10 +158,9 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     setRealm(newRealm);
   };
 
-  const generateBalancedTerrain = () => {
-    const newRealm = RealmGeneratorUtil.generateRealm("balanced", {
-      rows: realm.rows,
-      cols: realm.cols,
+  const fillBalancedTerrain = () => {
+    const newRealm = realm.copy();
+    RealmGeneratorUtil.fillRealm(newRealm, "balanced", {
       holdings: holdingsCount,
       landmarks: landmarksCount,
       myths: mythsCount,
@@ -171,10 +169,9 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     setRealm(newRealm);
   };
 
-  const generateClusteredTerrain = () => {
-    const newRealm = RealmGeneratorUtil.generateRealm("clustered", {
-      rows: realm.rows,
-      cols: realm.cols,
+  const fillClusteredTerrain = () => {
+    const newRealm = realm.copy();
+    RealmGeneratorUtil.fillRealm(newRealm, "clustered", {
       holdings: holdingsCount,
       landmarks: landmarksCount,
       myths: mythsCount,
@@ -183,10 +180,9 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     setRealm(newRealm);
   };
 
-  const generateWeightedTerrain = () => {
-    const newRealm = RealmGeneratorUtil.generateRealm("weighted", {
-      rows: realm.rows,
-      cols: realm.cols,
+  const fillWeightedTerrain = () => {
+    const newRealm = realm.copy();
+    RealmGeneratorUtil.fillRealm(newRealm, "weighted", {
       holdings: holdingsCount,
       landmarks: landmarksCount,
       myths: mythsCount,
@@ -643,10 +639,10 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
             onLandmarksChange={handleLandmarksChange}
             onMythsChange={handleMythsChange}
             onUseQuickStartListsChange={setUseQuickStartLists}
-            onGenerateRandom={generateRandomTerrain}
-            onGenerateBalanced={generateBalancedTerrain}
-            onGenerateClustered={generateClusteredTerrain}
-            onGenerateWeighted={generateWeightedTerrain}
+            onGenerateRandom={fillRandomTerrain}
+            onGenerateBalanced={fillBalancedTerrain}
+            onGenerateClustered={fillClusteredTerrain}
+            onGenerateWeighted={fillWeightedTerrain}
             onClear={clearTerrain}
             onExport={handleExportRealm}
             onImport={handleImportRealm}
