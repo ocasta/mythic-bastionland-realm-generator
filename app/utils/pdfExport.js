@@ -147,6 +147,7 @@ function cloneSVGForExport(svgElement, hideLabels) {
   }
 
   // Remove landmarks and myths, keep holdings with their labels
+  // Replace standard holding circles with icons for the player map
   // Find all circles that are feature markers and process their parent groups
   const allCircles = clonedSvg.querySelectorAll('circle');
   allCircles.forEach(circle => {
@@ -160,6 +161,22 @@ function cloneSVGForExport(svgElement, hideLabels) {
     // Keep holdings (blue #2563eb and gold #fbbf24) with their labels
     if (fillColor === '#22c55e' || fillColor === '#9333ea') {
       parent.remove();
+      return;
+    }
+
+    // Replace holdings with icons
+    if (fillColor === '#2563eb' || fillColor === '#fbbf24') {
+      const cx = parseFloat(circle.getAttribute('cx'));
+      const cy = parseFloat(circle.getAttribute('cy'));
+      if (Number.isFinite(cx) && Number.isFinite(cy)) {
+        const image = clonedSvg.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'image');
+        image.setAttribute('href', fillColor === '#fbbf24' ? '/castle.svg' : '/town.svg');
+        image.setAttribute('x', String(cx - 24));
+        image.setAttribute('y', String(cy - 24));
+        image.setAttribute('width', '48');
+        image.setAttribute('height', '48');
+        parent.replaceChild(image, circle);
+      }
     }
   });
 
