@@ -21,13 +21,17 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, paintingMode, on
    * Detect if click is near a corner and return corner index or null
    */
   const detectCorner = (e) => {
-    // Get click position relative to SVG
+    // Get click position in SVG viewBox coordinates
     const svg = e.target.closest('svg');
     if (!svg) return null;
 
-    const rect = svg.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
+    // Transform screen coordinates to SVG viewBox coordinates
+    const point = svg.createSVGPoint();
+    point.x = e.clientX;
+    point.y = e.clientY;
+    const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
+    const clickX = svgPoint.x;
+    const clickY = svgPoint.y;
 
     // Check distance to each corner
     for (let i = 0; i < 6; i++) {
