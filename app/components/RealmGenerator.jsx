@@ -96,6 +96,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const [terrainStyle, setTerrainStyle] = useState("watercolour");
   const [showNames, setShowNames] = useState(true);
   const [showCoordinates, setShowCoordinates] = useState(false);
+  const [showMapDecorations, setShowMapDecorations] = useState(true);
   const [draggingFeature, setDraggingFeature] = useState(null);
   // Shape: { type: 'holding'|'landmark'|'myth', row: number, col: number }
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -640,7 +641,8 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
       await new Promise(resolve => setTimeout(resolve, 0));
       await generateGMPDF({
         mapContainer: hexMapRef.current,
-        realm
+        realm,
+        showMapDecorations
       });
     } finally {
       setIsGeneratingPDF(false);
@@ -657,7 +659,8 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
       await new Promise(resolve => setTimeout(resolve, 0));
       await generatePlayerPDF({
         mapContainer: hexMapRef.current,
-        realm
+        realm,
+        showMapDecorations
       });
     } finally {
       setIsGeneratingPDF(false);
@@ -707,6 +710,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
             myths={mythsCount}
             useQuickStartLists={useQuickStartLists}
             showCoordinates={showCoordinates}
+            showMapDecorations={showMapDecorations}
             onRowsChange={handleRowsChange}
             onColsChange={handleColsChange}
             onHoldingsChange={handleHoldingsChange}
@@ -714,6 +718,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
             onMythsChange={handleMythsChange}
             onUseQuickStartListsChange={setUseQuickStartLists}
             onShowCoordinatesChange={setShowCoordinates}
+            onShowMapDecorationsChange={setShowMapDecorations}
             onGenerateRandom={fillRandomTerrain}
             onGenerateBalanced={fillBalancedTerrain}
             onGenerateClustered={fillClusteredTerrain}

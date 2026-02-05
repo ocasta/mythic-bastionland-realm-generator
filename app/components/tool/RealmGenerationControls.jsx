@@ -9,6 +9,7 @@ const RealmGenerationControls = ({
   myths,
   useQuickStartLists,
   showCoordinates,
+  showMapDecorations,
   onRowsChange,
   onColsChange,
   onHoldingsChange,
@@ -16,6 +17,7 @@ const RealmGenerationControls = ({
   onMythsChange,
   onUseQuickStartListsChange,
   onShowCoordinatesChange,
+  onShowMapDecorationsChange,
   onGenerateRandom,
   onGenerateBalanced,
   onGenerateClustered,
@@ -169,6 +171,33 @@ const RealmGenerationControls = ({
                     onClick={() => onShowCoordinatesChange(true)}
                     className={`px-3 py-1 text-sm rounded border ${
                       showCoordinates
+                        ? 'bg-blue-500 text-white border-blue-500'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    Yes
+                  </button>
+                </div>
+              </div>
+              <div className="col-span-2 flex items-center justify-between mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Show Map Decorations (PDF)
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onShowMapDecorationsChange(false)}
+                    className={`px-3 py-1 text-sm rounded border ${
+                      !showMapDecorations
+                        ? 'bg-blue-500 text-white border-blue-500'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    No
+                  </button>
+                  <button
+                    onClick={() => onShowMapDecorationsChange(true)}
+                    className={`px-3 py-1 text-sm rounded border ${
+                      showMapDecorations
                         ? 'bg-blue-500 text-white border-blue-500'
                         : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
                     }`}

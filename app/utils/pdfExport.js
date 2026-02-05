@@ -17,7 +17,45 @@ const PDF_STYLES = {
     text: [0, 0, 0],
     footer: [128, 128, 128],   // Gray
   },
+  // Vintage decoration settings
+  borderColor: [74, 55, 40],    // Sepia brown
+  parchmentColor: [245, 230, 211], // #f5e6d3 - matches compass rose background
+  borderOuter: 5,               // mm from page edge
+  borderInner: 8,               // mm from page edge
+  cornerOrnamentSize: 15,       // mm
+  compassSize: 25,              // mm diameter
+  compassPadding: 5,            // mm from border
 };
+
+// 8-point compass rose SVG (inline for PDF rendering)
+const COMPASS_ROSE_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Outer decorative circle -->
+  <circle cx="50" cy="50" r="48" fill="none" stroke="#4a3728" stroke-width="1.5"/>
+  <circle cx="50" cy="50" r="45" fill="#f5e6d3" stroke="#4a3728" stroke-width="0.5"/>
+
+  <!-- Inner circle -->
+  <circle cx="50" cy="50" r="8" fill="#4a3728"/>
+
+  <!-- Cardinal points (N, E, S, W) - long points -->
+  <polygon points="50,5 45,42 50,35 55,42" fill="#4a3728"/>
+  <polygon points="95,50 58,45 65,50 58,55" fill="#4a3728"/>
+  <polygon points="50,95 55,58 50,65 45,58" fill="#f5e6d3" stroke="#4a3728" stroke-width="0.5"/>
+  <polygon points="5,50 42,55 35,50 42,45" fill="#f5e6d3" stroke="#4a3728" stroke-width="0.5"/>
+
+  <!-- Intercardinal points (NE, SE, SW, NW) - short points -->
+  <polygon points="82,18 57,43 52,48 48,44" fill="#4a3728"/>
+  <polygon points="82,82 57,57 52,52 48,56" fill="#f5e6d3" stroke="#4a3728" stroke-width="0.5"/>
+  <polygon points="18,82 43,57 48,52 52,56" fill="#f5e6d3" stroke="#4a3728" stroke-width="0.5"/>
+  <polygon points="18,18 43,43 48,48 52,44" fill="#4a3728"/>
+
+  <!-- Cardinal direction labels -->
+  <text x="50" y="16" text-anchor="middle" font-family="serif" font-size="8" font-weight="bold" fill="#4a3728">N</text>
+  <text x="88" y="53" text-anchor="middle" font-family="serif" font-size="7" fill="#4a3728">E</text>
+  <text x="50" y="92" text-anchor="middle" font-family="serif" font-size="7" fill="#4a3728">S</text>
+  <text x="12" y="53" text-anchor="middle" font-family="serif" font-size="7" fill="#4a3728">W</text>
+</svg>
+`;
 
 /**
  * Converts an image URL to a base64 data URL
@@ -121,9 +159,10 @@ function fixComputedStyles(svgElement) {
  * Renders a prepared SVG to a canvas
  * @param {SVGElement} svgElement - The SVG to render
  * @param {number} scale - Scale factor for resolution
+ * @param {string} backgroundColor - Background color for the canvas (default white)
  * @returns {Promise<HTMLCanvasElement>} The rendered canvas
  */
-function renderSVGToCanvas(svgElement, scale = 2) {
+function renderSVGToCanvas(svgElement, scale = 2, backgroundColor = '#ffffff') {
   const serializer = new XMLSerializer();
   const svgString = serializer.serializeToString(svgElement);
   const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
@@ -138,7 +177,7 @@ function renderSVGToCanvas(svgElement, scale = 2) {
 
       const ctx = canvas.getContext('2d');
       ctx.scale(scale, scale);
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = backgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
 
@@ -158,13 +197,14 @@ function renderSVGToCanvas(svgElement, scale = 2) {
  * @param {SVGElement} svgElement - The SVG element to convert
  * @param {Object} options - Options for conversion
  * @param {boolean} options.hideLabels - Whether to hide reference labels (circles with text)
+ * @param {string} options.backgroundColor - Background color for the canvas
  * @returns {Promise<HTMLCanvasElement>} The rendered canvas
  */
-async function svgToCanvas(svgElement, { hideLabels = false } = {}) {
+async function svgToCanvas(svgElement, { hideLabels = false, backgroundColor = '#ffffff' } = {}) {
   const clonedSvg = cloneSVGForExport(svgElement, hideLabels);
   await inlineImages(clonedSvg);
   fixComputedStyles(clonedSvg);
-  return renderSVGToCanvas(clonedSvg);
+  return renderSVGToCanvas(clonedSvg, 2, backgroundColor);
 }
 
 /**
@@ -442,6 +482,294 @@ function addFooter(pdf) {
 }
 
 /**
+ * Draws a decorative corner ornament (L-shaped flourish with end caps)
+ * @param {jsPDF} pdf - The PDF document
+ * @param {number} x - X position of corner
+ * @param {number} y - Y position of corner
+ * @param {number} size - Size of the ornament arms
+ * @param {number} xDir - X direction (-1 for left, 1 for right)
+ * @param {number} yDir - Y direction (-1 for up, 1 for down)
+ */
+function drawCornerOrnament(pdf, x, y, size, xDir, yDir) {
+  const { borderColor } = PDF_STYLES;
+  pdf.setDrawColor(...borderColor);
+  pdf.setLineWidth(0.8);
+
+  // Main L-shape arms
+  const armLength = size * 0.7;
+  const capSize = 2;
+
+  // Horizontal arm
+  pdf.line(x, y, x + (armLength * xDir), y);
+  // Vertical arm
+  pdf.line(x, y, x, y + (armLength * yDir));
+
+  // Decorative end caps (small perpendicular lines)
+  pdf.setLineWidth(0.5);
+  // Cap on horizontal arm
+  pdf.line(
+    x + (armLength * xDir),
+    y - capSize,
+    x + (armLength * xDir),
+    y + capSize
+  );
+  // Cap on vertical arm
+  pdf.line(
+    x - capSize,
+    y + (armLength * yDir),
+    x + capSize,
+    y + (armLength * yDir)
+  );
+
+  // Small decorative diamond at corner
+  const diamondSize = 1.5;
+  pdf.setFillColor(...borderColor);
+  const diamondX = x + (3 * xDir);
+  const diamondY = y + (3 * yDir);
+  pdf.triangle(
+    diamondX, diamondY - diamondSize,
+    diamondX + diamondSize, diamondY,
+    diamondX, diamondY + diamondSize,
+    'F'
+  );
+  pdf.triangle(
+    diamondX, diamondY - diamondSize,
+    diamondX - diamondSize, diamondY,
+    diamondX, diamondY + diamondSize,
+    'F'
+  );
+}
+
+/**
+ * Fills the map area with a parchment background color
+ * @param {jsPDF} pdf - The PDF document
+ */
+function fillParchmentBackground(pdf) {
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const { parchmentColor, borderOuter, margin } = PDF_STYLES;
+
+  // Bottom margin to stay above footer
+  const bottomOuter = margin;
+
+  pdf.setFillColor(...parchmentColor);
+  pdf.rect(borderOuter, borderOuter, pageWidth - borderOuter * 2, pageHeight - borderOuter - bottomOuter, 'F');
+}
+
+/**
+ * Draws a decorative pattern between border lines with alternating filled segments
+ * @param {jsPDF} pdf - The PDF document
+ * @param {number} x1 - Start X
+ * @param {number} y1 - Start Y
+ * @param {number} x2 - End X
+ * @param {number} y2 - End Y
+ * @param {boolean} isHorizontal - Whether this is a horizontal edge
+ */
+function drawBorderPattern(pdf, x1, y1, x2, y2, isHorizontal) {
+  const { borderColor } = PDF_STYLES;
+  const spacing = 3; // Space between pattern elements
+  const halfHeight = 1.5; // Half the height of the pattern band
+
+  pdf.setDrawColor(...borderColor);
+  pdf.setFillColor(...borderColor);
+  pdf.setLineWidth(0.2);
+
+  if (isHorizontal) {
+    const midY = (y1 + y2) / 2;
+    const length = Math.abs(x2 - x1);
+    const startX = Math.min(x1, x2);
+    const count = Math.floor(length / spacing);
+
+    for (let i = 0; i < count; i++) {
+      const x = startX + i * spacing;
+      const nextX = x + spacing;
+
+      // Draw diagonal lines
+      pdf.line(x, midY - halfHeight, nextX, midY + halfHeight);
+      pdf.line(x, midY + halfHeight, nextX, midY - halfHeight);
+
+      // Fill alternating triangular segments
+      if (i % 2 === 0) {
+        // Fill top triangle
+        pdf.triangle(
+          x, midY - halfHeight,
+          nextX, midY - halfHeight,
+          x + spacing / 2, midY,
+          'F'
+        );
+        // Fill bottom triangle
+        pdf.triangle(
+          x, midY + halfHeight,
+          nextX, midY + halfHeight,
+          x + spacing / 2, midY,
+          'F'
+        );
+      } else {
+        // Fill left triangle
+        pdf.triangle(
+          x, midY - halfHeight,
+          x, midY + halfHeight,
+          x + spacing / 2, midY,
+          'F'
+        );
+        // Fill right triangle
+        pdf.triangle(
+          nextX, midY - halfHeight,
+          nextX, midY + halfHeight,
+          x + spacing / 2, midY,
+          'F'
+        );
+      }
+    }
+  } else {
+    const midX = (x1 + x2) / 2;
+    const length = Math.abs(y2 - y1);
+    const startY = Math.min(y1, y2);
+    const count = Math.floor(length / spacing);
+
+    for (let i = 0; i < count; i++) {
+      const y = startY + i * spacing;
+      const nextY = y + spacing;
+
+      // Draw diagonal lines
+      pdf.line(midX - halfHeight, y, midX + halfHeight, nextY);
+      pdf.line(midX + halfHeight, y, midX - halfHeight, nextY);
+
+      // Fill alternating triangular segments
+      if (i % 2 === 0) {
+        // Fill left triangle
+        pdf.triangle(
+          midX - halfHeight, y,
+          midX - halfHeight, nextY,
+          midX, y + spacing / 2,
+          'F'
+        );
+        // Fill right triangle
+        pdf.triangle(
+          midX + halfHeight, y,
+          midX + halfHeight, nextY,
+          midX, y + spacing / 2,
+          'F'
+        );
+      } else {
+        // Fill top triangle
+        pdf.triangle(
+          midX - halfHeight, y,
+          midX + halfHeight, y,
+          midX, y + spacing / 2,
+          'F'
+        );
+        // Fill bottom triangle
+        pdf.triangle(
+          midX - halfHeight, nextY,
+          midX + halfHeight, nextY,
+          midX, y + spacing / 2,
+          'F'
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Draws a vintage double-line border with corner ornaments and pattern fill
+ * @param {jsPDF} pdf - The PDF document
+ */
+function drawVintageBorder(pdf) {
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const { borderColor, borderOuter, borderInner, cornerOrnamentSize, margin } = PDF_STYLES;
+
+  // Bottom margin needs to be larger to stay above the footer text
+  const bottomOuter = margin;  // 10mm from bottom to clear footer
+  const bottomInner = margin + 3;  // 13mm from bottom
+
+  pdf.setDrawColor(...borderColor);
+
+  // Draw pattern fill between borders first
+  // Top edge
+  drawBorderPattern(pdf, borderOuter + cornerOrnamentSize, borderOuter, pageWidth - borderOuter - cornerOrnamentSize, borderInner, true);
+  // Bottom edge
+  drawBorderPattern(pdf, borderOuter + cornerOrnamentSize, pageHeight - bottomOuter, pageWidth - borderOuter - cornerOrnamentSize, pageHeight - bottomInner, true);
+  // Left edge
+  drawBorderPattern(pdf, borderOuter, borderOuter + cornerOrnamentSize, borderInner, pageHeight - bottomOuter - cornerOrnamentSize, false);
+  // Right edge
+  drawBorderPattern(pdf, pageWidth - borderOuter, borderOuter + cornerOrnamentSize, pageWidth - borderInner, pageHeight - bottomOuter - cornerOrnamentSize, false);
+
+  // Outer border (thicker)
+  pdf.setLineWidth(0.5);
+  pdf.rect(borderOuter, borderOuter, pageWidth - borderOuter * 2, pageHeight - borderOuter - bottomOuter);
+
+  // Inner border (thinner)
+  pdf.setLineWidth(0.3);
+  pdf.rect(borderInner, borderInner, pageWidth - borderInner * 2, pageHeight - borderInner - bottomInner);
+
+  // Corner ornaments
+  // Top-left
+  drawCornerOrnament(pdf, borderOuter, borderOuter, cornerOrnamentSize, 1, 1);
+  // Top-right
+  drawCornerOrnament(pdf, pageWidth - borderOuter, borderOuter, cornerOrnamentSize, -1, 1);
+  // Bottom-left
+  drawCornerOrnament(pdf, borderOuter, pageHeight - bottomOuter, cornerOrnamentSize, 1, -1);
+  // Bottom-right
+  drawCornerOrnament(pdf, pageWidth - borderOuter, pageHeight - bottomOuter, cornerOrnamentSize, -1, -1);
+}
+
+/**
+ * Renders the compass rose SVG to a canvas
+ * @returns {Promise<HTMLCanvasElement>} The rendered canvas
+ */
+async function renderCompassToCanvas() {
+  const blob = new Blob([COMPASS_ROSE_SVG], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const size = 200; // Higher resolution for quality
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      resolve(canvas);
+    };
+    img.onerror = (e) => {
+      URL.revokeObjectURL(url);
+      reject(e);
+    };
+    img.src = url;
+  });
+}
+
+/**
+ * Adds a compass rose to the bottom-right corner of the PDF
+ * @param {jsPDF} pdf - The PDF document
+ */
+async function addCompassRose(pdf) {
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const { compassSize, compassPadding, borderInner, margin } = PDF_STYLES;
+
+  // Use adjusted bottom margin to stay above footer
+  const bottomInner = margin + 3;
+
+  try {
+    const canvas = await renderCompassToCanvas();
+    const imgData = canvas.toDataURL('image/png');
+
+    // Position in bottom-right corner, inside the border
+    const x = pageWidth - borderInner - compassPadding - compassSize;
+    const y = pageHeight - bottomInner - compassPadding - compassSize;
+
+    pdf.addImage(imgData, 'PNG', x, y, compassSize, compassSize);
+  } catch (error) {
+    console.warn('Failed to render compass rose:', error);
+  }
+}
+
+/**
  * Calculates map dimensions to fit within available space
  */
 function calculateMapDimensions(canvas, maxWidth, maxHeight) {
@@ -487,14 +815,21 @@ async function addMapToPDF(pdf, mapContainer, x, y, maxWidth, maxHeight, hideLab
  * @param {Object} options
  * @param {HTMLElement} options.mapContainer - The DOM element containing the HexMap
  * @param {Object} options.realm - The realm object with holdings, landmarks, myths
+ * @param {boolean} options.showMapDecorations - Whether to include vintage border and compass
  */
-export async function generateGMPDF({ mapContainer, realm }) {
+export async function generateGMPDF({ mapContainer, realm, showMapDecorations = true }) {
   const pdf = new jsPDF('landscape', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const { margin, titleFontSize } = PDF_STYLES;
 
   // Page 1: Map only (full page, centered)
+
+  // Fill parchment background first (if decorations enabled)
+  if (showMapDecorations) {
+    fillParchmentBackground(pdf);
+  }
+
   pdf.setFontSize(titleFontSize);
   pdf.setFont('helvetica', 'bold');
   pdf.text(realm.name || 'Unnamed Realm', pageWidth / 2, margin + 5, { align: 'center' });
@@ -508,7 +843,8 @@ export async function generateGMPDF({ mapContainer, realm }) {
     const svgElement = mapContainer.querySelector('svg');
     if (svgElement) {
       try {
-        const canvas = await svgToCanvas(svgElement);
+        const backgroundColor = showMapDecorations ? '#f5e6d3' : '#ffffff';
+        const canvas = await svgToCanvas(svgElement, { backgroundColor });
         const imgData = canvas.toDataURL('image/png');
         const { imgWidth, imgHeight } = calculateMapDimensions(canvas, contentWidth, contentHeight);
 
@@ -520,6 +856,12 @@ export async function generateGMPDF({ mapContainer, realm }) {
         console.error('Error capturing hex map:', error);
       }
     }
+  }
+
+  // Add vintage decorations to page 1 (border + compass)
+  if (showMapDecorations) {
+    drawVintageBorder(pdf);
+    await addCompassRose(pdf);
   }
 
   // Add footer to page 1
@@ -535,6 +877,11 @@ export async function generateGMPDF({ mapContainer, realm }) {
 
   // Add all resources in grid layout
   addResourcesGridPage(pdf, realm, contentTop, margin, pageWidth);
+
+  // Add vintage border to page 2 (no compass)
+  if (showMapDecorations) {
+    drawVintageBorder(pdf);
+  }
 
   // Add footer to page 2
   addFooter(pdf);
@@ -552,13 +899,19 @@ export async function generateGMPDF({ mapContainer, realm }) {
  * @param {Object} options
  * @param {HTMLElement} options.mapContainer - The DOM element containing the HexMap
  * @param {Object} options.realm - The realm object (used for name only)
+ * @param {boolean} options.showMapDecorations - Whether to include vintage border and compass
  */
-export async function generatePlayerPDF({ mapContainer, realm }) {
+export async function generatePlayerPDF({ mapContainer, realm, showMapDecorations = true }) {
   const pdf = new jsPDF('landscape', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const { margin, titleFontSize } = PDF_STYLES;
   const contentWidth = pageWidth - margin * 2;
+
+  // Fill parchment background first (if decorations enabled)
+  if (showMapDecorations) {
+    fillParchmentBackground(pdf);
+  }
 
   // Title
   pdf.setFontSize(titleFontSize);
@@ -573,7 +926,8 @@ export async function generatePlayerPDF({ mapContainer, realm }) {
     const svgElement = mapContainer.querySelector('svg');
     if (svgElement) {
       try {
-        const canvas = await svgToCanvas(svgElement, { hideLabels: true });
+        const backgroundColor = showMapDecorations ? '#f5e6d3' : '#ffffff';
+        const canvas = await svgToCanvas(svgElement, { hideLabels: true, backgroundColor });
         const imgData = canvas.toDataURL('image/png');
         const { imgWidth, imgHeight } = calculateMapDimensions(canvas, contentWidth, contentHeight);
 
@@ -585,6 +939,12 @@ export async function generatePlayerPDF({ mapContainer, realm }) {
         console.error('Error capturing hex map:', error);
       }
     }
+  }
+
+  // Add vintage decorations (border + compass)
+  if (showMapDecorations) {
+    drawVintageBorder(pdf);
+    await addCompassRose(pdf);
   }
 
   // Add footer
