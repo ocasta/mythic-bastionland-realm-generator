@@ -1,8 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { terrainTypes, hexConfig, getTerrainTypesForStyle, hexUtils } from "../utils/hexUtils";
 import { Realm } from "../utils/realmModel";
 import { RealmGenerator as RealmGeneratorUtil, pickRandomLandmark, pickRandomLandmarkType, pickRandomMyth, pickRandomSeer, generateHoldingName, generateKeepName, generateHoldingDetailName, generateDefaultHoldingDetails, generateRulerDetailName, generateDefaultRulerDetails } from "../utils/realmGenerator";
-import { exportRealm, importRealm } from "../utils/realmExport";
+import { exportRealm, importRealm, validateRealmData, createRealmFromImportData } from "../utils/realmExport";
 import { generateGMPDF, generatePlayerPDF } from "../utils/pdfExport";
 import RealmGenerationControls from "./tool/RealmGenerationControls";
 import TerrainLegend from "./tool/TerrainLegend";
@@ -13,9 +13,75 @@ import HexDetails from "./tool/HexDetails";
 import RealmOverview from "./tool/RealmOverview";
 import RealmResources from "./tool/RealmResources";
 
+const STORAGE_KEY = 'mythic-bastionland-realm';
+
+const isBrowser = typeof window !== 'undefined';
+
+const loadRealmFromStorage = (defaultRows, defaultCols) => {
+  if (!isBrowser) {
+    return new Realm(defaultRows, defaultCols);
+  }
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const data = JSON.parse(stored);
+      if (validateRealmData(data)) {
+        return createRealmFromImportData(data);
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to load realm from localStorage:', e);
+  }
+  return new Realm(defaultRows, defaultCols);
+};
+
+const saveRealmToStorage = (realm) => {
+  if (!isBrowser) return;
+  try {
+    const exportData = {
+      name: realm.name,
+      rows: realm.rows,
+      cols: realm.cols,
+      terrain: [],
+      holdings: realm.holdings || [],
+      landmarks: realm.landmarks || [],
+      myths: realm.myths || [],
+      barriers: realm.barriers || [],
+      rivers: (realm.rivers || []).map(r => r.toJSON ? r.toJSON() : r),
+      nextRiverId: realm.nextRiverId || 1
+    };
+
+    for (let row = 0; row < realm.rows; row++) {
+      for (let col = 0; col < realm.cols; col++) {
+        const hex = realm.getHex(row, col);
+        if (hex && hex.terrainType) {
+          exportData.terrain.push({
+            row: row,
+            col: col,
+            type: hex.terrainType.type
+          });
+        }
+      }
+    }
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(exportData));
+  } catch (e) {
+    console.warn('Failed to save realm to localStorage:', e);
+  }
+};
+
+const clearRealmStorage = () => {
+  if (!isBrowser) return;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (e) {
+    console.warn('Failed to clear realm from localStorage:', e);
+  }
+};
+
 const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const hexMapRef = useRef(null);
-  const [realm, setRealm] = useState(() => new Realm(rows, cols));
+  const [realm, setRealm] = useState(() => loadRealmFromStorage(rows, cols));
   const [selectedHex, setSelectedHex] = useState(null);
   const [paintingMode, setPaintingMode] = useState(false);
   const [selectedTerrainType, setSelectedTerrainType] = useState(null);
@@ -36,6 +102,11 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const [currentRiverPath, setCurrentRiverPath] = useState([]);
 
   const styledTerrainTypes = getTerrainTypesForStyle(terrainStyle);
+
+  // Save realm to localStorage whenever it changes
+  useEffect(() => {
+    saveRealmToStorage(realm);
+  }, [realm]);
 
   const hexSize = hexConfig.defaultSize;
   const { width: svgWidth, height: svgHeight } = hexConfig.getSvgDimensions(
@@ -192,6 +263,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   };
 
   const clearTerrain = () => {
+    clearRealmStorage();
     const newRealm = new Realm(rows, cols);
     setRealm(newRealm);
     setHoldingsCount(4);

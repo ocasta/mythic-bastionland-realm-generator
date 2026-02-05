@@ -84,7 +84,7 @@ export const importRealm = (file, onSuccess, onError) => {
   reader.readAsText(file);
 };
 
-const validateRealmData = (data) => {
+export const validateRealmData = (data) => {
   // Check required fields
   if (!data.name || !data.rows || !data.cols || !data.terrain) {
     return false;
@@ -119,7 +119,7 @@ const validateRealmData = (data) => {
   return true;
 };
 
-const createRealmFromImportData = (data) => {
+export const createRealmFromImportData = (data) => {
   // Create new realm with imported dimensions
   const realm = new Realm(data.rows, data.cols);
   realm.name = data.name;
