@@ -438,7 +438,7 @@ function addFooter(pdf) {
   pdf.setFontSize(footerFontSize);
   pdf.setFont('helvetica', 'normal');
   pdf.setTextColor(...colors.footer);
-  pdf.text('Created by mmacphail/mythic-bastionland-realm-generator', pageWidth / 2, pageHeight - margin / 2, { align: 'center' });
+  pdf.text('Created by mmacphail/mythic-bastionland-realm-generator for use with Mythic Bastionland. It is not endorsed or affiliated with Mythic Bastionland or Bastionland Press.', pageWidth / 2, pageHeight - margin / 2, { align: 'center' });
 }
 
 /**
