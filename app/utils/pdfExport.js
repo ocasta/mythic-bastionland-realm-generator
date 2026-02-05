@@ -57,6 +57,50 @@ const COMPASS_ROSE_SVG = `
 </svg>
 `;
 
+// Time track SVG with morning, afternoon, and night spaces (vertical layout)
+const TIME_TRACK_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 150" width="50" height="150">
+  <!-- Outer border -->
+  <rect x="0" y="0" width="50" height="150" rx="3" fill="none" stroke="#4a3728" stroke-width="1.5"/>
+
+  <!-- Morning box (top) -->
+  <rect x="0" y="0" width="50" height="50" fill="#fff8e7" stroke="#4a3728" stroke-width="0.75"/>
+  <!-- Rising sun icon -->
+  <path d="M25 38 L8 38 A17 17 0 0 1 42 38 Z" fill="#f59e0b" stroke="#4a3728" stroke-width="0.75"/>
+  <line x1="25" y1="10" x2="25" y2="16" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="12" y1="18" x2="16" y2="22" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="38" y1="18" x2="34" y2="22" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="5" y1="28" x2="11" y2="28" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="39" y1="28" x2="45" y2="28" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Afternoon box (middle) -->
+  <rect x="0" y="50" width="50" height="50" fill="#fff8e7" stroke="#4a3728" stroke-width="0.75"/>
+  <!-- Full sun icon -->
+  <circle cx="25" cy="75" r="12" fill="#f59e0b" stroke="#4a3728" stroke-width="0.75"/>
+  <line x1="25" y1="55" x2="25" y2="61" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="25" y1="89" x2="25" y2="95" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="5" y1="75" x2="11" y2="75" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="39" y1="75" x2="45" y2="75" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="11" y1="61" x2="15" y2="65" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="35" y1="85" x2="39" y2="89" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="39" y1="61" x2="35" y2="65" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="15" y1="85" x2="11" y2="89" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Night box (bottom) -->
+  <rect x="0" y="100" width="50" height="50" fill="#1e293b" stroke="#4a3728" stroke-width="0.75"/>
+  <!-- Moon icon - larger crescent -->
+  <circle cx="20" cy="125" r="14" fill="#fcd34d"/>
+  <circle cx="28" cy="120" r="12" fill="#1e293b"/>
+  <!-- Stars -->
+  <circle cx="38" cy="112" r="2" fill="#fcd34d"/>
+  <circle cx="45" cy="125" r="1.5" fill="#fcd34d"/>
+  <circle cx="40" cy="138" r="2" fill="#fcd34d"/>
+  <circle cx="32" cy="108" r="1" fill="#fcd34d"/>
+  <circle cx="8" cy="110" r="1.5" fill="#fcd34d"/>
+  <circle cx="5" cy="140" r="1" fill="#fcd34d"/>
+</svg>
+`;
+
 /**
  * Converts an image URL to a base64 data URL
  */
@@ -770,6 +814,60 @@ async function addCompassRose(pdf) {
 }
 
 /**
+ * Renders the time track SVG to a canvas
+ * @returns {Promise<HTMLCanvasElement>} The rendered canvas
+ */
+async function renderTimeTrackToCanvas() {
+  const blob = new Blob([TIME_TRACK_SVG], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const width = 100; // Higher resolution for quality
+      const height = 300;
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      resolve(canvas);
+    };
+    img.onerror = (e) => {
+      URL.revokeObjectURL(url);
+      reject(e);
+    };
+    img.src = url;
+  });
+}
+
+/**
+ * Adds a time track (morning/afternoon/night) to the top-left corner of the PDF
+ * @param {jsPDF} pdf - The PDF document
+ */
+async function addTimeTrack(pdf) {
+  const { compassPadding, borderInner } = PDF_STYLES;
+
+  // Time track dimensions (1:3 aspect ratio, vertical)
+  const trackWidth = 15; // mm
+  const trackHeight = 45; // mm
+
+  try {
+    const canvas = await renderTimeTrackToCanvas();
+    const imgData = canvas.toDataURL('image/png');
+
+    // Position in top-left corner, inside the border
+    const x = borderInner + compassPadding;
+    const y = borderInner + compassPadding;
+
+    pdf.addImage(imgData, 'PNG', x, y, trackWidth, trackHeight);
+  } catch (error) {
+    console.warn('Failed to render time track:', error);
+  }
+}
+
+/**
  * Calculates map dimensions to fit within available space
  */
 function calculateMapDimensions(canvas, maxWidth, maxHeight) {
@@ -905,8 +1003,7 @@ export async function generatePlayerPDF({ mapContainer, realm, showMapDecoration
   const pdf = new jsPDF('landscape', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
-  const { margin, titleFontSize } = PDF_STYLES;
-  const contentWidth = pageWidth - margin * 2;
+  const { margin, titleFontSize, borderInner, compassPadding, compassSize } = PDF_STYLES;
 
   // Fill parchment background first (if decorations enabled)
   if (showMapDecorations) {
@@ -919,7 +1016,23 @@ export async function generatePlayerPDF({ mapContainer, realm, showMapDecoration
   pdf.text(realm.name || 'Unnamed Realm', pageWidth / 2, margin + 5, { align: 'center' });
 
   const contentTop = margin + 12;
-  const contentHeight = pageHeight - contentTop - margin;
+  const bottomMargin = margin + 3; // Account for footer
+
+  // Calculate max content dimensions, accounting for decorations if enabled
+  let maxContentWidth = pageWidth - margin * 2;
+  let maxContentHeight = pageHeight - contentTop - bottomMargin;
+
+  if (showMapDecorations) {
+    // Time track is top-left: 15mm wide at (borderInner + compassPadding)
+    const timeTrackWidth = 15;
+    const timeTrackInset = borderInner + compassPadding + timeTrackWidth + 3; // +3mm gap
+
+    // Compass is bottom-right: 25mm at (pageWidth - borderInner - compassPadding - compassSize)
+    const compassInset = borderInner + compassPadding + compassSize + 3; // +3mm gap
+
+    // Reduce available width to avoid both decorations
+    maxContentWidth = pageWidth - timeTrackInset - compassInset;
+  }
 
   // Capture the hex map SVG as an image (without labels)
   if (mapContainer) {
@@ -929,11 +1042,11 @@ export async function generatePlayerPDF({ mapContainer, realm, showMapDecoration
         const backgroundColor = showMapDecorations ? '#f5e6d3' : '#ffffff';
         const canvas = await svgToCanvas(svgElement, { hideLabels: true, backgroundColor });
         const imgData = canvas.toDataURL('image/png');
-        const { imgWidth, imgHeight } = calculateMapDimensions(canvas, contentWidth, contentHeight);
+        const { imgWidth, imgHeight } = calculateMapDimensions(canvas, maxContentWidth, maxContentHeight);
 
-        // Center the map
+        // Center the map on the full page
         const xOffset = (pageWidth - imgWidth) / 2;
-        const yOffset = contentTop + (contentHeight - imgHeight) / 2;
+        const yOffset = contentTop + (maxContentHeight - imgHeight) / 2;
         pdf.addImage(imgData, 'PNG', xOffset, yOffset, imgWidth, imgHeight);
       } catch (error) {
         console.error('Error capturing hex map:', error);
@@ -941,10 +1054,11 @@ export async function generatePlayerPDF({ mapContainer, realm, showMapDecoration
     }
   }
 
-  // Add vintage decorations (border + compass)
+  // Add vintage decorations (border + compass + time track)
   if (showMapDecorations) {
     drawVintageBorder(pdf);
     await addCompassRose(pdf);
+    await addTimeTrack(pdf);
   }
 
   // Add footer
