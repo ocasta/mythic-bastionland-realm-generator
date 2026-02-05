@@ -6,7 +6,10 @@ import TerrainPatterns from "./svg/TerrainPatterns";
 import FeatureNameLabels from "./svg/FeatureNameLabels";
 import RiverPaths from "./svg/RiverPaths";
 
-const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, terrainStyle, showNames, showCoordinates, draggingFeature, onFeatureDragStart, onFeatureDrop, riverDrawingMode, currentRiverPath, onRiverHexClick }) => {
+// Padding to prevent feature labels from being clipped on the left edge
+const LABEL_PADDING_LEFT = 60;
+
+const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, terrainStyle, showNames, showCoordinates, showFeatureNames, draggingFeature, onFeatureDragStart, onFeatureDrop, riverDrawingMode, currentRiverPath, onRiverHexClick }) => {
   const holdings = realm.getHoldings();
   const landmarks = realm.getLandmarks();
   const myths = realm.getMyths();
@@ -54,9 +57,9 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
   return (
     <div className="hex-grid overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg p-4">
       <svg
-        width={svgWidth}
+        width={svgWidth + LABEL_PADDING_LEFT}
         height={svgHeight}
-        viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+        viewBox={`${-LABEL_PADDING_LEFT} 0 ${svgWidth + LABEL_PADDING_LEFT} ${svgHeight}`}
         className="hex-grid-svg"
       >
         <TerrainPatterns terrainTypes={terrainTypes} terrainStyle={terrainStyle} />
@@ -264,6 +267,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
             landmarks={landmarks}
             myths={myths}
             hexSize={hexSize}
+            showFeatureNames={showFeatureNames}
           />
         )}
       </svg>

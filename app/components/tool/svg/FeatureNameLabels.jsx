@@ -11,8 +11,9 @@ const MYTH_COLOR = '#9333ea';  // Purple
  * Renders name labels below features on the hex map.
  * Shows feature names in small boxes below holdings, landmarks, and myths.
  * For holdings and landmarks, the label prefix is included on the left with color.
+ * When showFeatureNames is false, only the reference labels are shown.
  */
-const FeatureNameLabels = ({ holdings, landmarks, myths, hexSize }) => {
+const FeatureNameLabels = ({ holdings, landmarks, myths, hexSize, showFeatureNames = true }) => {
   const renderLabel = (feature, index, prefix) => {
     const { x, y } = hexUtils.hexToWorld(feature.row, feature.col, hexSize);
     if (!feature.name) return null;
@@ -47,11 +48,41 @@ const FeatureNameLabels = ({ holdings, landmarks, myths, hexSize }) => {
 
   const renderHoldingLabel = (holding, index) => {
     const { x, y } = hexUtils.hexToWorld(holding.row, holding.col, hexSize);
-    if (!holding.name) return null;
+    if (!holding.name && showFeatureNames) return null;
 
     const label = getHoldingLabel(holding, holdings);
     const labelColor = holding.isSeatOfPower ? SEAT_OF_POWER_COLOR : HOLDING_COLOR;
     const labelWidth = label.length * 6 + 2;
+
+    // When showFeatureNames is false, only show the reference label
+    if (!showFeatureNames) {
+      return (
+        <g key={`holding-label-${index}`} className="feature-name-label">
+          <rect
+            x={x - labelWidth / 2}
+            y={y + 14}
+            width={labelWidth}
+            height="14"
+            fill={labelColor}
+            stroke="black"
+            strokeWidth="1"
+            rx="2"
+          />
+          <text
+            x={x}
+            y={y + 23}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize="8"
+            fill="white"
+            fontWeight="bold"
+          >
+            {label}
+          </text>
+        </g>
+      );
+    }
+
     const nameWidth = holding.name.length * 4.5 + 2;
     const totalWidth = labelWidth + nameWidth;
 
@@ -106,10 +137,40 @@ const FeatureNameLabels = ({ holdings, landmarks, myths, hexSize }) => {
 
   const renderLandmarkLabel = (landmark, index) => {
     const { x, y } = hexUtils.hexToWorld(landmark.row, landmark.col, hexSize);
-    if (!landmark.name) return null;
+    if (!landmark.name && showFeatureNames) return null;
 
     const label = getLandmarkLabel(landmark, landmarks);
     const labelWidth = label.length * 6 + 2;
+
+    // When showFeatureNames is false, only show the reference label
+    if (!showFeatureNames) {
+      return (
+        <g key={`landmark-label-${index}`} className="feature-name-label">
+          <rect
+            x={x - labelWidth / 2}
+            y={y + 14}
+            width={labelWidth}
+            height="14"
+            fill={LANDMARK_COLOR}
+            stroke="black"
+            strokeWidth="1"
+            rx="2"
+          />
+          <text
+            x={x}
+            y={y + 23}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize="8"
+            fill="white"
+            fontWeight="bold"
+          >
+            {label}
+          </text>
+        </g>
+      );
+    }
+
     const nameWidth = landmark.name.length * 4.5 + 2;
     const totalWidth = labelWidth + nameWidth;
 
@@ -164,10 +225,40 @@ const FeatureNameLabels = ({ holdings, landmarks, myths, hexSize }) => {
 
   const renderMythLabel = (myth, index) => {
     const { x, y } = hexUtils.hexToWorld(myth.row, myth.col, hexSize);
-    if (!myth.name) return null;
+    if (!myth.name && showFeatureNames) return null;
 
     const label = getMythLabel(myth, myths);
     const labelWidth = label.length * 6 + 2;
+
+    // When showFeatureNames is false, only show the reference label
+    if (!showFeatureNames) {
+      return (
+        <g key={`myth-label-${index}`} className="feature-name-label">
+          <rect
+            x={x - labelWidth / 2}
+            y={y + 14}
+            width={labelWidth}
+            height="14"
+            fill={MYTH_COLOR}
+            stroke="black"
+            strokeWidth="1"
+            rx="2"
+          />
+          <text
+            x={x}
+            y={y + 23}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize="8"
+            fill="white"
+            fontWeight="bold"
+          >
+            {label}
+          </text>
+        </g>
+      );
+    }
+
     const nameWidth = myth.name.length * 4.5 + 2;
     const totalWidth = labelWidth + nameWidth;
 
