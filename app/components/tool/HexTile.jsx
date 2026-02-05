@@ -3,7 +3,7 @@ import { hexUtils, hexConfig } from '../../utils/hexUtils';
 // Distance threshold for corner snapping (in pixels)
 const CORNER_SNAP_THRESHOLD = 12;
 
-const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, riverDrawingMode, onRiverHexClick }) => {
+const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, showCoordinates, riverDrawingMode, onRiverHexClick }) => {
   const { x, y } = hexUtils.hexToWorld(rowIndex, colIndex, hexSize);
   const hexPath = hexUtils.generateHexPath(x, y, hexSize);
 
@@ -61,18 +61,47 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, paintingMode, on
     ? `url(#terrain-${hex.terrainType.type})`
     : hex.terrainType.color;
 
+  // Position for coordinates text (bottom of hex)
+  const coordY = y + hexSize * 0.7;
+
   return (
-    <path
-      d={hexPath}
-      fill={fill}
-      stroke="none"
-      className={`hex-tile ${cursorClass} hover:opacity-80 transition-opacity`}
-      onClick={(e) => handleClick(e)}
-      onMouseDown={handleMouseDown}
-      onMouseEnter={() => onHexMouseEnter && onHexMouseEnter(hex)}
-      onMouseUp={() => onHexMouseUp && onHexMouseUp()}
-      style={{ userSelect: 'none' }}
-    />
+    <g>
+      <path
+        d={hexPath}
+        fill={fill}
+        stroke="none"
+        className={`hex-tile ${cursorClass} hover:opacity-80 transition-opacity`}
+        onClick={(e) => handleClick(e)}
+        onMouseDown={handleMouseDown}
+        onMouseEnter={() => onHexMouseEnter && onHexMouseEnter(hex)}
+        onMouseUp={() => onHexMouseUp && onHexMouseUp()}
+        style={{ userSelect: 'none' }}
+      />
+      {showCoordinates && (
+        <>
+          <ellipse
+            cx={x}
+            cy={coordY}
+            rx={hexSize * 0.32}
+            ry={hexSize * 0.18}
+            fill="white"
+            fillOpacity={0.85}
+            style={{ pointerEvents: 'none' }}
+          />
+          <text
+            x={x}
+            y={coordY}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontSize={hexSize * 0.2}
+            fill="#555"
+            style={{ userSelect: 'none', pointerEvents: 'none' }}
+          >
+            {colIndex},{rowIndex}
+          </text>
+        </>
+      )}
+    </g>
   );
 };
 

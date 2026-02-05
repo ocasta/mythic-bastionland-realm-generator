@@ -6,7 +6,7 @@ import TerrainPatterns from "./svg/TerrainPatterns";
 import FeatureNameLabels from "./svg/FeatureNameLabels";
 import RiverPaths from "./svg/RiverPaths";
 
-const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, terrainStyle, showNames, draggingFeature, onFeatureDragStart, onFeatureDrop, riverDrawingMode, currentRiverPath, onRiverHexClick }) => {
+const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, terrainStyle, showNames, showCoordinates, draggingFeature, onFeatureDragStart, onFeatureDrop, riverDrawingMode, currentRiverPath, onRiverHexClick }) => {
   const holdings = realm.getHoldings();
   const landmarks = realm.getLandmarks();
   const myths = realm.getMyths();
@@ -76,6 +76,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
               onHexMouseEnter={onHexMouseEnter}
               onHexMouseUp={onHexMouseUp}
               terrainTypes={terrainTypes}
+              showCoordinates={showCoordinates}
               riverDrawingMode={riverDrawingMode}
               onRiverHexClick={onRiverHexClick}
             />

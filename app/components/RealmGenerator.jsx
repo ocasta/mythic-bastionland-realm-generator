@@ -95,6 +95,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const [useQuickStartLists, setUseQuickStartLists] = useState(false);
   const [terrainStyle, setTerrainStyle] = useState("watercolour");
   const [showNames, setShowNames] = useState(true);
+  const [showCoordinates, setShowCoordinates] = useState(false);
   const [draggingFeature, setDraggingFeature] = useState(null);
   // Shape: { type: 'holding'|'landmark'|'myth', row: number, col: number }
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -705,12 +706,14 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
             landmarks={landmarksCount}
             myths={mythsCount}
             useQuickStartLists={useQuickStartLists}
+            showCoordinates={showCoordinates}
             onRowsChange={handleRowsChange}
             onColsChange={handleColsChange}
             onHoldingsChange={handleHoldingsChange}
             onLandmarksChange={handleLandmarksChange}
             onMythsChange={handleMythsChange}
             onUseQuickStartListsChange={setUseQuickStartLists}
+            onShowCoordinatesChange={setShowCoordinates}
             onGenerateRandom={fillRandomTerrain}
             onGenerateBalanced={fillBalancedTerrain}
             onGenerateClustered={fillClusteredTerrain}
@@ -767,6 +770,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
               terrainTypes={styledTerrainTypes}
               terrainStyle={terrainStyle}
               showNames={showNames}
+              showCoordinates={showCoordinates}
               draggingFeature={draggingFeature}
               onFeatureDragStart={handleFeatureDragStart}
               onFeatureDrop={handleFeatureDrop}
