@@ -441,7 +441,7 @@ export class Realm {
       h.ruler,
       h.rulerDetails?.map(d => ({ ...d }))
     ));
-    newRealm.landmarks = this.landmarks.map(l => new Landmark(l.row, l.col, l.type, l.name));
+    newRealm.landmarks = this.landmarks.map(l => new Landmark(l.row, l.col, l.type, l.name, l.seer));
     newRealm.myths = this.myths.map(m => new Myth(m.row, m.col, m.name));
     newRealm.barriers = this.barriers.map(b => new Barrier(b.row, b.col, b.side));
     newRealm.rivers = this.rivers.map(r => {
