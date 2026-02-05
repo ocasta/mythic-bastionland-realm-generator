@@ -27,79 +27,46 @@ const PDF_STYLES = {
   compassPadding: 5,            // mm from border
 };
 
-// 8-point compass rose SVG (inline for PDF rendering)
-const COMPASS_ROSE_SVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-  <!-- Outer decorative circle -->
-  <circle cx="50" cy="50" r="48" fill="none" stroke="#4a3728" stroke-width="1.5"/>
-  <circle cx="50" cy="50" r="45" fill="#f5e6d3" stroke="#4a3728" stroke-width="0.5"/>
+// SVG asset paths - loaded from public directory
+const COMPASS_ROSE_PATH = '/compass-rose.svg';
+const TIME_TRACK_PATH = '/time-track.svg';
 
-  <!-- Inner circle -->
-  <circle cx="50" cy="50" r="8" fill="#4a3728"/>
+/**
+ * Sanitizes a realm name for use as a filename
+ */
+function sanitizeFilename(name) {
+  return name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+}
 
-  <!-- Cardinal points (N, E, S, W) - long points -->
-  <polygon points="50,5 45,42 50,35 55,42" fill="#4a3728"/>
-  <polygon points="95,50 58,45 65,50 58,55" fill="#4a3728"/>
-  <polygon points="50,95 55,58 50,65 45,58" fill="#f5e6d3" stroke="#4a3728" stroke-width="0.5"/>
-  <polygon points="5,50 42,55 35,50 42,45" fill="#f5e6d3" stroke="#4a3728" stroke-width="0.5"/>
+/**
+ * Downloads a PDF blob with the specified filename
+ */
+function downloadPDF(pdfBlob, filename) {
+  const url = URL.createObjectURL(pdfBlob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
 
-  <!-- Intercardinal points (NE, SE, SW, NW) - short points -->
-  <polygon points="82,18 57,43 52,48 48,44" fill="#4a3728"/>
-  <polygon points="82,82 57,57 52,52 48,56" fill="#f5e6d3" stroke="#4a3728" stroke-width="0.5"/>
-  <polygon points="18,82 43,57 48,52 52,56" fill="#f5e6d3" stroke="#4a3728" stroke-width="0.5"/>
-  <polygon points="18,18 43,43 48,48 52,44" fill="#4a3728"/>
-
-  <!-- Cardinal direction labels -->
-  <text x="50" y="16" text-anchor="middle" font-family="serif" font-size="8" font-weight="bold" fill="#4a3728">N</text>
-  <text x="88" y="53" text-anchor="middle" font-family="serif" font-size="7" fill="#4a3728">E</text>
-  <text x="50" y="92" text-anchor="middle" font-family="serif" font-size="7" fill="#4a3728">S</text>
-  <text x="12" y="53" text-anchor="middle" font-family="serif" font-size="7" fill="#4a3728">W</text>
-</svg>
-`;
-
-// Time track SVG with morning, afternoon, and night spaces (vertical layout)
-const TIME_TRACK_SVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 150" width="50" height="150">
-  <!-- Outer border -->
-  <rect x="0" y="0" width="50" height="150" rx="3" fill="none" stroke="#4a3728" stroke-width="1.5"/>
-
-  <!-- Morning box (top) -->
-  <rect x="0" y="0" width="50" height="50" fill="#fff8e7" stroke="#4a3728" stroke-width="0.75"/>
-  <!-- Rising sun icon -->
-  <path d="M25 38 L8 38 A17 17 0 0 1 42 38 Z" fill="#f59e0b" stroke="#4a3728" stroke-width="0.75"/>
-  <line x1="25" y1="10" x2="25" y2="16" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="12" y1="18" x2="16" y2="22" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="38" y1="18" x2="34" y2="22" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="5" y1="28" x2="11" y2="28" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="39" y1="28" x2="45" y2="28" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
-
-  <!-- Afternoon box (middle) -->
-  <rect x="0" y="50" width="50" height="50" fill="#fff8e7" stroke="#4a3728" stroke-width="0.75"/>
-  <!-- Full sun icon -->
-  <circle cx="25" cy="75" r="12" fill="#f59e0b" stroke="#4a3728" stroke-width="0.75"/>
-  <line x1="25" y1="55" x2="25" y2="61" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="25" y1="89" x2="25" y2="95" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="5" y1="75" x2="11" y2="75" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="39" y1="75" x2="45" y2="75" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="11" y1="61" x2="15" y2="65" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="35" y1="85" x2="39" y2="89" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="39" y1="61" x2="35" y2="65" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="15" y1="85" x2="11" y2="89" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
-
-  <!-- Night box (bottom) -->
-  <rect x="0" y="100" width="50" height="50" fill="#1e293b" stroke="#4a3728" stroke-width="0.75"/>
-  <!-- Moon icon - larger crescent -->
-  <circle cx="20" cy="125" r="14" fill="#fcd34d"/>
-  <circle cx="28" cy="120" r="12" fill="#1e293b"/>
-  <!-- Stars -->
-  <circle cx="38" cy="112" r="2" fill="#fcd34d"/>
-  <circle cx="45" cy="125" r="1.5" fill="#fcd34d"/>
-  <circle cx="40" cy="138" r="2" fill="#fcd34d"/>
-  <circle cx="32" cy="108" r="1" fill="#fcd34d"/>
-  <circle cx="8" cy="110" r="1.5" fill="#fcd34d"/>
-  <circle cx="5" cy="140" r="1" fill="#fcd34d"/>
-</svg>
-`;
+/**
+ * Fetches SVG content from a URL
+ * @param {string} url - URL to fetch
+ * @returns {Promise<string>} SVG content
+ */
+async function fetchSVGContent(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to fetch ${url}`);
+    return await response.text();
+  } catch (error) {
+    console.warn('Failed to load SVG:', url, error);
+    return null;
+  }
+}
 
 /**
  * Converts an image URL to a base64 data URL
@@ -777,22 +744,24 @@ function drawVintageBorder(pdf) {
 }
 
 /**
- * Renders the compass rose SVG to a canvas
+ * Renders an SVG to a canvas
+ * @param {string} svgContent - SVG content string
+ * @param {number} width - Canvas width
+ * @param {number} height - Canvas height
  * @returns {Promise<HTMLCanvasElement>} The rendered canvas
  */
-async function renderCompassToCanvas() {
-  const blob = new Blob([COMPASS_ROSE_SVG], { type: 'image/svg+xml;charset=utf-8' });
+async function renderSVGContentToCanvas(svgContent, width, height) {
+  const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
   const url = URL.createObjectURL(blob);
 
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const size = 200; // Higher resolution for quality
-      canvas.width = size;
-      canvas.height = size;
+      canvas.width = width;
+      canvas.height = height;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, size, size);
+      ctx.drawImage(img, 0, 0, width, height);
       URL.revokeObjectURL(url);
       resolve(canvas);
     };
@@ -802,6 +771,16 @@ async function renderCompassToCanvas() {
     };
     img.src = url;
   });
+}
+
+/**
+ * Renders the compass rose SVG to a canvas
+ * @returns {Promise<HTMLCanvasElement>} The rendered canvas
+ */
+async function renderCompassToCanvas() {
+  const svgContent = await fetchSVGContent(COMPASS_ROSE_PATH);
+  if (!svgContent) throw new Error('Failed to load compass rose SVG');
+  return renderSVGContentToCanvas(svgContent, 200, 200);
 }
 
 /**
@@ -835,28 +814,9 @@ async function addCompassRose(pdf) {
  * @returns {Promise<HTMLCanvasElement>} The rendered canvas
  */
 async function renderTimeTrackToCanvas() {
-  const blob = new Blob([TIME_TRACK_SVG], { type: 'image/svg+xml;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const width = 100; // Higher resolution for quality
-      const height = 300;
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-      URL.revokeObjectURL(url);
-      resolve(canvas);
-    };
-    img.onerror = (e) => {
-      URL.revokeObjectURL(url);
-      reject(e);
-    };
-    img.src = url;
-  });
+  const svgContent = await fetchSVGContent(TIME_TRACK_PATH);
+  if (!svgContent) throw new Error('Failed to load time track SVG');
+  return renderSVGContentToCanvas(svgContent, 100, 300);
 }
 
 /**
@@ -1001,10 +961,10 @@ export async function generateGMPDF({ mapContainer, realm, showMapDecorations = 
   // Add footer to page 2
   addFooter(pdf);
 
-  // Open PDF in new window
+  // Download PDF with realm name
   const pdfBlob = pdf.output('blob');
-  const pdfUrl = URL.createObjectURL(pdfBlob);
-  window.open(pdfUrl, '_blank');
+  const filename = `${sanitizeFilename(realm.name || 'realm')}_GM.pdf`;
+  downloadPDF(pdfBlob, filename);
 }
 
 /**
@@ -1081,10 +1041,10 @@ export async function generatePlayerPDF({ mapContainer, realm, showMapDecoration
   // Add footer
   addFooter(pdf);
 
-  // Open PDF in new window
+  // Download PDF with realm name
   const pdfBlob = pdf.output('blob');
-  const pdfUrl = URL.createObjectURL(pdfBlob);
-  window.open(pdfUrl, '_blank');
+  const filename = `${sanitizeFilename(realm.name || 'realm')}_Player.pdf`;
+  downloadPDF(pdfBlob, filename);
 }
 
 export default generateGMPDF;
