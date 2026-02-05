@@ -128,6 +128,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
                       y={y}
                       label={landmarkRef}
                       featureType="landmark"
+                      landmarkType={landmark.type}
                       paintingMode={paintingMode}
                       riverDrawingMode={riverDrawingMode}
                       draggingFeature={draggingFeature}
