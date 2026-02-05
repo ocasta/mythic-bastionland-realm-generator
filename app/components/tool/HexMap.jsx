@@ -123,6 +123,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
                       riverDrawingMode={riverDrawingMode}
                       draggingFeature={draggingFeature}
                       onDragStart={() => onFeatureDragStart && onFeatureDragStart('holding', rowIndex, colIndex)}
+                      onSelect={() => selectHex(hex)}
                     />
                   )}
                   {landmark && landmarkRef && (
@@ -136,6 +137,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
                       riverDrawingMode={riverDrawingMode}
                       draggingFeature={draggingFeature}
                       onDragStart={() => onFeatureDragStart && onFeatureDragStart('landmark', rowIndex, colIndex)}
+                      onSelect={() => selectHex(hex)}
                     />
                   )}
                   {myth && mythRef && (
@@ -148,6 +150,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
                       riverDrawingMode={riverDrawingMode}
                       draggingFeature={draggingFeature}
                       onDragStart={() => onFeatureDragStart && onFeatureDragStart('myth', rowIndex, colIndex)}
+                      onSelect={() => selectHex(hex)}
                     />
                   )}
                 </g>

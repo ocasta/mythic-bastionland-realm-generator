@@ -31,7 +31,8 @@ const FeatureMarker = ({
   paintingMode = false,
   riverDrawingMode = false,
   draggingFeature = null,
-  onDragStart
+  onDragStart,
+  onSelect
 }) => {
   const color = featureType === 'holding' && isSeatOfPower
     ? FEATURE_COLORS.seatOfPower
@@ -40,9 +41,14 @@ const FeatureMarker = ({
   const isDisabled = paintingMode || riverDrawingMode || draggingFeature;
 
   const handleMouseDown = (e) => {
-    if (!isDisabled && onDragStart) {
+    if (!isDisabled) {
       e.stopPropagation();
-      onDragStart();
+      if (onSelect) {
+        onSelect();
+      }
+      if (onDragStart) {
+        onDragStart();
+      }
     }
   };
 
