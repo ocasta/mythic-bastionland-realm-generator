@@ -67,6 +67,15 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     riverDrawing.resetRiverState();
   };
 
+  // Handle river click - select or deselect
+  const handleRiverClick = (riverId) => {
+    if (riverId === null) {
+      riverDrawing.deselectRiver();
+    } else {
+      riverDrawing.selectRiver(riverId);
+    }
+  };
+
   const clampValue = (value, min, max) => Math.max(min, Math.min(max, value));
 
   const handleRowsChange = (value) => {
@@ -95,6 +104,10 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     if (hexPainting.paintingMode) {
       hexPainting.paintHex(hex);
       return;
+    }
+    // Deselect river when selecting a hex
+    if (riverDrawing.selectedRiverId) {
+      riverDrawing.deselectRiver();
     }
     setSelectedHex(selectedHex && hex === selectedHex ? null : hex);
   };
@@ -194,6 +207,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const handleGlobalMouseUp = () => {
     hexPainting.handleHexMouseUp();
     featureDragDrop.handleFeatureDragEnd();
+    riverDrawing.endWaypointDrag();
   };
 
   return (
@@ -307,6 +321,18 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
               riverDrawingMode={riverDrawing.riverDrawingMode}
               currentRiverPath={riverDrawing.currentRiverPath}
               onRiverHexClick={riverDrawing.addRiverPoint}
+              selectedRiverId={riverDrawing.selectedRiverId}
+              onRiverClick={handleRiverClick}
+              onWaypointMouseDown={riverDrawing.startWaypointDrag}
+              onWaypointDrag={riverDrawing.updateWaypointDrag}
+              onWaypointDragEnd={riverDrawing.endWaypointDrag}
+              draggingWaypoint={riverDrawing.draggingWaypoint}
+              dragPreviewPoint={riverDrawing.dragPreviewPoint}
+              dragPaths={riverDrawing.dragPaths}
+              contextMenu={riverDrawing.contextMenu}
+              onContextMenu={riverDrawing.openContextMenu}
+              onCloseContextMenu={riverDrawing.closeContextMenu}
+              onDeleteWaypoint={riverDrawing.deleteWaypoint}
             />
           </div>
 

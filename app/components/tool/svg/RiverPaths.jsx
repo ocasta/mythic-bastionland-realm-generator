@@ -38,6 +38,7 @@ const RIVER_STYLES = {
 
 /**
  * SVG component for rendering rivers as smooth paths through hex centers
+ * Note: Waypoint handles are rendered separately by RiverWaypointHandles to ensure proper z-ordering
  */
 const RiverPaths = ({
   rivers,
@@ -45,6 +46,8 @@ const RiverPaths = ({
   terrainStyle,
   currentRiverPath = [],
   realm = null,
+  selectedRiverId = null,
+  onRiverClick = null,
 }) => {
   if ((!rivers || rivers.length === 0) && currentRiverPath.length === 0) {
     return null;
@@ -68,6 +71,7 @@ const RiverPaths = ({
           if (river.path.length < 2) return null;
 
           const widths = widthMap.get(river.id) || river.path.map(() => BASE_WIDTH);
+          const isSelected = selectedRiverId === river.id;
 
           // For comic style, render outline first
           if (style.outline) {
@@ -79,6 +83,20 @@ const RiverPaths = ({
             );
             return (
               <g key={`river-${river.id}`}>
+                {/* Hit target for click detection */}
+                {onRiverClick && (
+                  <path
+                    d={generateSmoothPath(river.path, hexSize, realm)}
+                    fill="none"
+                    stroke="transparent"
+                    strokeWidth={20}
+                    style={{ cursor: 'pointer', pointerEvents: 'stroke' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRiverClick(river.id);
+                    }}
+                  />
+                )}
                 {/* Outline paths */}
                 {segments.map((seg, idx) => (
                   <path
@@ -89,6 +107,7 @@ const RiverPaths = ({
                     strokeWidth={seg.width * style.outline.strokeWidth}
                     strokeLinecap={style.strokeLinecap}
                     strokeLinejoin={style.strokeLinejoin}
+                    style={{ pointerEvents: 'none' }}
                   />
                 ))}
                 {/* Main paths */}
@@ -97,11 +116,12 @@ const RiverPaths = ({
                     key={`main-${river.id}-${idx}`}
                     d={seg.d}
                     fill="none"
-                    stroke={style.stroke}
+                    stroke={isSelected ? '#f59e0b' : style.stroke}
                     strokeWidth={seg.width * style.strokeWidth}
                     strokeLinecap={style.strokeLinecap}
                     strokeLinejoin={style.strokeLinejoin}
                     opacity={style.opacity}
+                    style={{ pointerEvents: 'none' }}
                   />
                 ))}
               </g>
@@ -112,17 +132,32 @@ const RiverPaths = ({
           const segments = generateWidthSegments(river.path, widths, hexSize, realm);
           return (
             <g key={`river-${river.id}`}>
+              {/* Hit target for click detection */}
+              {onRiverClick && (
+                <path
+                  d={generateSmoothPath(river.path, hexSize, realm)}
+                  fill="none"
+                  stroke="transparent"
+                  strokeWidth={20}
+                  style={{ cursor: 'pointer', pointerEvents: 'stroke' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRiverClick(river.id);
+                  }}
+                />
+              )}
               {segments.map((seg, idx) => (
                 <path
                   key={`seg-${river.id}-${idx}`}
                   d={seg.d}
                   fill="none"
-                  stroke={style.stroke}
+                  stroke={isSelected ? '#f59e0b' : style.stroke}
                   strokeWidth={seg.width * style.strokeWidth}
                   strokeLinecap={style.strokeLinecap}
                   strokeLinejoin={style.strokeLinejoin}
                   filter={style.filter}
                   opacity={style.opacity}
+                  style={{ pointerEvents: 'none' }}
                 />
               ))}
             </g>
