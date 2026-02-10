@@ -1,9 +1,14 @@
-import { useState, useRef } from "react";
-import { terrainTypes, hexConfig, getTerrainTypesForStyle, hexUtils } from "../utils/hexUtils";
+import { useState, useRef, useEffect } from "react";
+import { hexConfig, getTerrainTypesForStyle } from "../utils/hexUtils";
 import { Realm } from "../utils/realmModel";
-import { RealmGenerator as RealmGeneratorUtil, pickRandomLandmark, pickRandomLandmarkType, pickRandomMyth, pickRandomSeer, generateHoldingName, generateKeepName, generateHoldingDetailName, generateDefaultHoldingDetails, generateRulerDetailName, generateDefaultRulerDetails } from "../utils/realmGenerator";
+import { RealmGenerator as RealmGeneratorUtil } from "../utils/realmGenerator";
 import { exportRealm, importRealm } from "../utils/realmExport";
 import { generateGMPDF, generatePlayerPDF } from "../utils/pdfExport";
+import { loadRealmFromStorage, saveRealmToStorage, clearRealmStorage } from "../utils/realmStorage";
+import { useHexPainting } from "../hooks/useHexPainting";
+import { useFeatureManagement } from "../hooks/useFeatureManagement";
+import { useFeatureDragDrop } from "../hooks/useFeatureDragDrop";
+import { useRiverDrawing } from "../hooks/useRiverDrawing";
 import RealmGenerationControls from "./tool/RealmGenerationControls";
 import TerrainLegend from "./tool/TerrainLegend";
 import TerrainStatistics from "./tool/TerrainStatistics";
@@ -15,12 +20,8 @@ import RealmResources from "./tool/RealmResources";
 
 const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const hexMapRef = useRef(null);
-  const [realm, setRealm] = useState(() => new Realm(rows, cols));
+  const [realm, setRealm] = useState(() => loadRealmFromStorage(rows, cols));
   const [selectedHex, setSelectedHex] = useState(null);
-  const [paintingMode, setPaintingMode] = useState(false);
-  const [selectedTerrainType, setSelectedTerrainType] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStarted, setDragStarted] = useState(false);
   const [importError, setImportError] = useState(null);
   const [importSuccess, setImportSuccess] = useState(null);
   const [holdingsCount, setHoldingsCount] = useState(4);
@@ -29,13 +30,29 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   const [useQuickStartLists, setUseQuickStartLists] = useState(false);
   const [terrainStyle, setTerrainStyle] = useState("watercolour");
   const [showNames, setShowNames] = useState(true);
-  const [draggingFeature, setDraggingFeature] = useState(null);
-  // Shape: { type: 'holding'|'landmark'|'myth', row: number, col: number }
+  const [showCoordinates, setShowCoordinates] = useState(false);
+  const [showMapDecorations, setShowMapDecorations] = useState(true);
+  const [showFeatureNames, setShowFeatureNames] = useState(true);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [riverDrawingMode, setRiverDrawingMode] = useState(false);
-  const [currentRiverPath, setCurrentRiverPath] = useState([]);
 
   const styledTerrainTypes = getTerrainTypesForStyle(terrainStyle);
+
+  // Custom hooks for state management
+  const hexPainting = useHexPainting({ realm, setRealm, setSelectedHex });
+  const featureManagement = useFeatureManagement({ realm, setRealm, setSelectedHex, useQuickStartLists });
+  const featureDragDrop = useFeatureDragDrop({ realm, setRealm });
+  const riverDrawing = useRiverDrawing({
+    realm,
+    setRealm,
+    setPaintingMode: hexPainting.resetPaintingState,
+    setSelectedTerrainType: () => {},
+    setSelectedHex
+  });
+
+  // Save realm to localStorage whenever it changes
+  useEffect(() => {
+    saveRealmToStorage(realm);
+  }, [realm]);
 
   const hexSize = hexConfig.defaultSize;
   const { width: svgWidth, height: svgHeight } = hexConfig.getSvgDimensions(
@@ -46,143 +63,67 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
 
   const resetInteractionState = () => {
     setSelectedHex(null);
-    setPaintingMode(false);
-    setSelectedTerrainType(null);
-    setIsDragging(false);
-    setDragStarted(false);
-    setRiverDrawingMode(false);
-    setCurrentRiverPath([]);
+    hexPainting.resetPaintingState();
+    riverDrawing.resetRiverState();
+  };
+
+  // Handle river click - select or deselect
+  const handleRiverClick = (riverId) => {
+    if (riverId === null) {
+      riverDrawing.deselectRiver();
+    } else {
+      riverDrawing.selectRiver(riverId);
+    }
   };
 
   const clampValue = (value, min, max) => Math.max(min, Math.min(max, value));
 
   const handleRowsChange = (value) => {
-    const nextRows = clampValue(value, 6, 12);
-    const newRealm = new Realm(nextRows, realm.cols, realm.name);
+    const nextRows = clampValue(value, 6, 18);
+    if (nextRows === realm.rows) return;
+    const newRealm = realm.copy();
+    newRealm.resize(nextRows, realm.cols);
     setRealm(newRealm);
     resetInteractionState();
   };
 
   const handleColsChange = (value) => {
-    const nextCols = clampValue(value, 6, 12);
-    const newRealm = new Realm(realm.rows, nextCols, realm.name);
+    const nextCols = clampValue(value, 6, 18);
+    if (nextCols === realm.cols) return;
+    const newRealm = realm.copy();
+    newRealm.resize(realm.rows, nextCols);
     setRealm(newRealm);
     resetInteractionState();
   };
 
-  const handleHoldingsChange = (value) => {
-    setHoldingsCount(clampValue(value, 1, 4));
-  };
-
-  const handleLandmarksChange = (value) => {
-    setLandmarksCount(clampValue(value, 2, 6));
-  };
-
-  const handleMythsChange = (value) => {
-    setMythsCount(clampValue(value, 1, 6));
-  };
+  const handleHoldingsChange = (value) => setHoldingsCount(clampValue(value, 1, 10));
+  const handleLandmarksChange = (value) => setLandmarksCount(clampValue(value, 2, 20));
+  const handleMythsChange = (value) => setMythsCount(clampValue(value, 1, 10));
 
   const selectHex = (hex) => {
-    // If in painting mode, don't select hex - paint instead
-    if (paintingMode) {
-      paintHex(hex);
+    if (hexPainting.paintingMode) {
+      hexPainting.paintHex(hex);
       return;
     }
-    
-    if(selectedHex && hex === selectedHex) {
-      setSelectedHex(null);
-    } else {
-      setSelectedHex(hex);
+    // Deselect river when selecting a hex
+    if (riverDrawing.selectedRiverId) {
+      riverDrawing.deselectRiver();
     }
+    setSelectedHex(selectedHex && hex === selectedHex ? null : hex);
   };
 
   const handleHexMouseDown = (hex) => {
-    if (paintingMode) {
-      setIsDragging(true);
-      setDragStarted(true);
-      paintHex(hex);
+    if (hexPainting.paintingMode) {
+      hexPainting.handleHexMouseDown(hex);
     } else {
       selectHex(hex);
     }
   };
 
-  const handleHexMouseEnter = (hex) => {
-    if (paintingMode && isDragging && dragStarted) {
-      paintHex(hex);
-    }
-  };
-
-  const handleHexMouseUp = () => {
-    if (paintingMode) {
-      setIsDragging(false);
-      setDragStarted(false);
-    }
-  };
-
-  const startPainting = (terrainType) => {
-    setPaintingMode(true);
-    setSelectedTerrainType(terrainType);
-    setSelectedHex(null); // Deselect any currently selected hex
-  };
-
-  const stopPainting = () => {
-    setPaintingMode(false);
-    setSelectedTerrainType(null);
-    setIsDragging(false);
-    setDragStarted(false);
-  };
-
-  const paintHex = (hex) => {
-    if (!paintingMode || !selectedTerrainType) return;
-    
-    // Don't repaint if it's already the correct terrain type
-    if (hex.terrainType.type === selectedTerrainType.type) return;
-    
+  // Consolidated fill terrain function
+  const fillTerrain = (strategy) => {
     const newRealm = realm.copy();
-    newRealm.setHex(hex.row, hex.col, selectedTerrainType);
-    setRealm(newRealm);
-  };
-
-  const generateRandomTerrain = () => {
-    const newRealm = RealmGeneratorUtil.generateRealm("random", {
-      rows: realm.rows,
-      cols: realm.cols,
-      holdings: holdingsCount,
-      landmarks: landmarksCount,
-      myths: mythsCount,
-      useQuickStartLists
-    });
-    setRealm(newRealm);
-  };
-
-  const generateBalancedTerrain = () => {
-    const newRealm = RealmGeneratorUtil.generateRealm("balanced", {
-      rows: realm.rows,
-      cols: realm.cols,
-      holdings: holdingsCount,
-      landmarks: landmarksCount,
-      myths: mythsCount,
-      useQuickStartLists
-    });
-    setRealm(newRealm);
-  };
-
-  const generateClusteredTerrain = () => {
-    const newRealm = RealmGeneratorUtil.generateRealm("clustered", {
-      rows: realm.rows,
-      cols: realm.cols,
-      holdings: holdingsCount,
-      landmarks: landmarksCount,
-      myths: mythsCount,
-      useQuickStartLists
-    });
-    setRealm(newRealm);
-  };
-
-  const generateWeightedTerrain = () => {
-    const newRealm = RealmGeneratorUtil.generateRealm("weighted", {
-      rows: realm.rows,
-      cols: realm.cols,
+    RealmGeneratorUtil.fillRealm(newRealm, strategy, {
       holdings: holdingsCount,
       landmarks: landmarksCount,
       myths: mythsCount,
@@ -192,6 +133,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   };
 
   const clearTerrain = () => {
+    clearRealmStorage();
     const newRealm = new Realm(rows, cols);
     setRealm(newRealm);
     setHoldingsCount(4);
@@ -200,329 +142,13 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     setUseQuickStartLists(false);
   };
 
-  const getTerrainStats = () => {
-    return realm.getTerrainStats();
-  };
-
-  const updateSelectedHex = (row, col, newRealm) => {
-    const hex = newRealm.getHex(row, col);
-    setSelectedHex(hex);
-  };
+  const getTerrainStats = () => realm.getTerrainStats();
 
   const editHexTerrain = (row, col, terrainType) => {
     const newRealm = realm.copy();
     newRealm.setHex(row, col, terrainType);
     setRealm(newRealm);
-    
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  const addHolding = (row, col, isSeatOfPower = false, name = null, details = null, ruler = "", rulerDetails = null) => {
-    const newRealm = realm.copy();
-    const holdingDetails = details ?? generateDefaultHoldingDetails(isSeatOfPower);
-    const holdingName = name ?? holdingDetails[0].name;
-    const holdingRulerDetails = rulerDetails ?? generateDefaultRulerDetails();
-    newRealm.addHolding(row, col, isSeatOfPower, holdingName, holdingDetails, ruler, holdingRulerDetails);
-    setRealm(newRealm);
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  const updateHolding = (row, col, updates) => {
-    const newRealm = realm.copy();
-    const holdingIndex = newRealm.holdings.findIndex(h => h.row === row && h.col === col);
-    if (holdingIndex !== -1) {
-      const holding = newRealm.holdings[holdingIndex];
-
-      if ('name' in updates) {
-        holding.name = updates.name;
-      }
-
-      if ('isSeatOfPower' in updates) {
-        holding.isSeatOfPower = updates.isSeatOfPower;
-      }
-
-      if ('details' in updates) {
-        holding.details = updates.details;
-      }
-
-      if ('ruler' in updates) {
-        holding.ruler = updates.ruler;
-      }
-
-      if ('rulerDetails' in updates) {
-        holding.rulerDetails = updates.rulerDetails;
-      }
-    }
-    setRealm(newRealm);
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  const regenerateHolding = (row, col, detailIndex = null, section = 'holding') => {
-    const newRealm = realm.copy();
-    const holdingIndex = newRealm.holdings.findIndex(h => h.row === row && h.col === col);
-    if (holdingIndex !== -1) {
-      const holding = newRealm.holdings[holdingIndex];
-      const isSeatOfPower = holding.isSeatOfPower;
-
-      if (section === 'ruler') {
-        // Regenerate ruler detail
-        if (detailIndex !== null && holding.rulerDetails && holding.rulerDetails[detailIndex]) {
-          const detailType = holding.rulerDetails[detailIndex].type;
-          holding.rulerDetails[detailIndex].name = generateRulerDetailName(detailType);
-        }
-      } else if (detailIndex !== null && holding.details && holding.details[detailIndex]) {
-        // Regenerate only the specific holding detail
-        const detailType = holding.details[detailIndex].type;
-        holding.details[detailIndex].name = generateHoldingDetailName(detailType);
-      } else {
-        // Regenerate all details (don't change main name or ruler)
-        holding.details = generateDefaultHoldingDetails(isSeatOfPower);
-        holding.rulerDetails = generateDefaultRulerDetails();
-      }
-    }
-    setRealm(newRealm);
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  const removeHolding = (row, col) => {
-    const newRealm = realm.copy();
-    newRealm.holdings = newRealm.holdings.filter(h => !(h.row === row && h.col === col));
-    setRealm(newRealm);
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  const addLandmark = (row, col) => {
-    const newRealm = realm.copy();
-
-    const landmarkType = pickRandomLandmarkType();
-    const landmark = pickRandomLandmark(landmarkType);
-
-    newRealm.addLandmark(row, col, landmarkType, landmark);
-    setRealm(newRealm);
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  const updateLandmark = (row, col, type, name, seer = null) => {
-    const newRealm = realm.copy();
-    const landmarkIndex = newRealm.landmarks.findIndex(l => l.row === row && l.col === col);
-    if (landmarkIndex !== -1) {
-      newRealm.landmarks[landmarkIndex].type = type;
-      newRealm.landmarks[landmarkIndex].name = name;
-      newRealm.landmarks[landmarkIndex].seer = seer;
-    }
-    setRealm(newRealm);
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  const removeLandmark = (row, col) => {
-    const newRealm = realm.copy();
-    newRealm.landmarks = newRealm.landmarks.filter(l => !(l.row === row && l.col === col));
-    setRealm(newRealm);
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  const regenerateLandmark = (row, col) => {
-    const newRealm = realm.copy();
-    const landmarkIndex = newRealm.landmarks.findIndex(l => l.row === row && l.col === col);
-    if (landmarkIndex !== -1) {
-      const landmarkType = pickRandomLandmarkType();
-      const landmark = pickRandomLandmark(landmarkType);
-      const seer = landmarkType === 'Sanctum' ? pickRandomSeer(useQuickStartLists) : null;
-      newRealm.landmarks[landmarkIndex].type = landmarkType;
-      newRealm.landmarks[landmarkIndex].name = landmark;
-      newRealm.landmarks[landmarkIndex].seer = seer;
-    }
-    setRealm(newRealm);
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  const addMyth = (row, col) => {
-    const newRealm = realm.copy();
-    const myth = pickRandomMyth();
-    newRealm.addMyth(row, col, myth);
-    setRealm(newRealm);
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  const updateMyth = (row, col, name) => {
-    const newRealm = realm.copy();
-    const mythIndex = newRealm.myths.findIndex(m => m.row === row && m.col === col);
-    if (mythIndex !== -1) {
-      newRealm.myths[mythIndex].name = name;
-    }
-    setRealm(newRealm);
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  const removeMyth = (row, col) => {
-    const newRealm = realm.copy();
-    newRealm.myths = newRealm.myths.filter(m => !(m.row === row && m.col === col));
-    setRealm(newRealm);
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  const regenerateMyth = (row, col) => {
-    const newRealm = realm.copy();
-    const mythIndex = newRealm.myths.findIndex(m => m.row === row && m.col === col);
-    if (mythIndex !== -1) {
-      newRealm.myths[mythIndex].name = pickRandomMyth(useQuickStartLists);
-    }
-    setRealm(newRealm);
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  const addBarrier = (row, col, side) => {
-    const newRealm = realm.copy();
-    newRealm.addBarrier(row, col, side);
-    setRealm(newRealm);
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  const removeBarrier = (row, col, side) => {
-    const newRealm = realm.copy();
-    newRealm.barriers = newRealm.barriers.filter(b => !(b.row === row && b.col === col && b.side === side));
-    setRealm(newRealm);
-    updateSelectedHex(row, col, newRealm);
-  };
-
-  // River drawing handlers
-  const startRiverDrawing = () => {
-    setRiverDrawingMode(true);
-    setCurrentRiverPath([]);
-    setPaintingMode(false);
-    setSelectedTerrainType(null);
-    setSelectedHex(null);
-  };
-
-  const addRiverPoint = (row, col, corner = null) => {
-    const newPoint = { row, col };
-    if (corner !== null && corner !== undefined) {
-      newPoint.corner = corner;
-    }
-
-    // If this is not the first point, check adjacency
-    if (currentRiverPath.length > 0) {
-      const lastPoint = currentRiverPath[currentRiverPath.length - 1];
-
-      // Use the new adjacency check that handles both centers and corners
-      const isAdjacent = hexUtils.arePointsAdjacent(lastPoint, newPoint, realm.rows, realm.cols);
-
-      if (!isAdjacent) {
-        return; // Ignore non-adjacent clicks
-      }
-
-      // Don't allow revisiting the exact same point
-      const isDuplicate = currentRiverPath.some(p =>
-        p.row === row && p.col === col &&
-        ((p.corner === undefined || p.corner === null) && (corner === undefined || corner === null) ||
-         p.corner === corner)
-      );
-      if (isDuplicate) {
-        return;
-      }
-    }
-
-    setCurrentRiverPath(prev => [...prev, newPoint]);
-  };
-
-  const finishRiver = () => {
-    if (currentRiverPath.length >= 2) {
-      const newRealm = realm.copy();
-
-      // Check if this river ends on an existing river (making it a tributary)
-      const lastPoint = currentRiverPath[currentRiverPath.length - 1];
-      let tributaryOf = null;
-
-      for (const river of newRealm.rivers) {
-        // Check for exact point match (center or corner)
-        if (river.hasPoint(lastPoint.row, lastPoint.col, lastPoint.corner ?? null)) {
-          tributaryOf = river.id;
-          break;
-        }
-        // Also check if ending at any point in the same hex (for tributaries joining at different points)
-        if (river.hasPointAtHex(lastPoint.row, lastPoint.col)) {
-          tributaryOf = river.id;
-          break;
-        }
-      }
-
-      newRealm.addRiver([...currentRiverPath], tributaryOf);
-      setRealm(newRealm);
-    }
-
-    setRiverDrawingMode(false);
-    setCurrentRiverPath([]);
-  };
-
-  const cancelRiver = () => {
-    setRiverDrawingMode(false);
-    setCurrentRiverPath([]);
-  };
-
-  const removeRiver = (id) => {
-    const newRealm = realm.copy();
-    newRealm.removeRiver(id);
-    setRealm(newRealm);
-  };
-
-  // Feature drag and drop handlers
-  const moveHolding = (fromRow, fromCol, toRow, toCol) => {
-    const newRealm = realm.copy();
-    const holding = newRealm.holdings.find(h => h.row === fromRow && h.col === fromCol);
-    if (holding) {
-      holding.row = toRow;
-      holding.col = toCol;
-    }
-    setRealm(newRealm);
-  };
-
-  const moveLandmark = (fromRow, fromCol, toRow, toCol) => {
-    const newRealm = realm.copy();
-    const landmark = newRealm.landmarks.find(l => l.row === fromRow && l.col === fromCol);
-    if (landmark) {
-      landmark.row = toRow;
-      landmark.col = toCol;
-    }
-    setRealm(newRealm);
-  };
-
-  const moveMyth = (fromRow, fromCol, toRow, toCol) => {
-    const newRealm = realm.copy();
-    const myth = newRealm.myths.find(m => m.row === fromRow && m.col === fromCol);
-    if (myth) {
-      myth.row = toRow;
-      myth.col = toCol;
-    }
-    setRealm(newRealm);
-  };
-
-  const handleFeatureDragStart = (type, row, col) => {
-    setDraggingFeature({ type, row, col });
-  };
-
-  const handleFeatureDrop = (toRow, toCol) => {
-    if (!draggingFeature) return;
-
-    // Check target hex doesn't already have a feature
-    const hasFeature = realm.getHolding(toRow, toCol) ||
-                       realm.getLandmark(toRow, toCol) ||
-                       realm.getMyth(toRow, toCol);
-    if (hasFeature) {
-      setDraggingFeature(null);
-      return; // Can't drop on hex with existing feature
-    }
-
-    // Move the feature
-    const { type, row, col } = draggingFeature;
-    if (type === 'holding') moveHolding(row, col, toRow, toCol);
-    else if (type === 'landmark') moveLandmark(row, col, toRow, toCol);
-    else if (type === 'myth') moveMyth(row, col, toRow, toCol);
-
-    setDraggingFeature(null);
-  };
-
-  const handleFeatureDragEnd = () => {
-    setDraggingFeature(null);
+    setSelectedHex(newRealm.getHex(row, col));
   };
 
   const editRealmName = (newName) => {
@@ -531,9 +157,7 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     setRealm(newRealm);
   };
 
-  const handleExportRealm = () => {
-    exportRealm(realm);
-  };
+  const handleExportRealm = () => exportRealm(realm);
 
   const handleImportRealm = (file) => {
     setImportError(null);
@@ -545,14 +169,10 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
         setRealm(importedRealm);
         resetInteractionState();
         setImportSuccess(`Realm "${importedRealm.name}" imported successfully!`);
-
-        // Clear success message after 3 seconds
         setTimeout(() => setImportSuccess(null), 3000);
       },
       (error) => {
         setImportError(error);
-
-        // Clear error message after 5 seconds
         setTimeout(() => setImportError(null), 5000);
       }
     );
@@ -563,12 +183,8 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     setIsGeneratingPDF(true);
     document.body.style.cursor = 'wait';
     try {
-      // Allow state to update before capturing
       await new Promise(resolve => setTimeout(resolve, 0));
-      await generateGMPDF({
-        mapContainer: hexMapRef.current,
-        realm
-      });
+      await generateGMPDF({ mapContainer: hexMapRef.current, realm, showMapDecorations });
     } finally {
       setIsGeneratingPDF(false);
       document.body.style.cursor = '';
@@ -580,12 +196,8 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
     setIsGeneratingPDF(true);
     document.body.style.cursor = 'wait';
     try {
-      // Allow state to update before capturing
       await new Promise(resolve => setTimeout(resolve, 0));
-      await generatePlayerPDF({
-        mapContainer: hexMapRef.current,
-        realm
-      });
+      await generatePlayerPDF({ mapContainer: hexMapRef.current, realm, showMapDecorations });
     } finally {
       setIsGeneratingPDF(false);
       document.body.style.cursor = '';
@@ -593,8 +205,9 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
   };
 
   const handleGlobalMouseUp = () => {
-    handleHexMouseUp(); // existing terrain painting cleanup
-    handleFeatureDragEnd(); // cancel drag if mouse released outside valid target
+    hexPainting.handleHexMouseUp();
+    featureDragDrop.handleFeatureDragEnd();
+    riverDrawing.endWaypointDrag();
   };
 
   return (
@@ -614,7 +227,6 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
             />
           </div>
 
-          {/* Import/Export Messages */}
           {importError && (
             <div className="mb-2 p-2 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-300 rounded">
               {importError}
@@ -633,16 +245,22 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
             landmarks={landmarksCount}
             myths={mythsCount}
             useQuickStartLists={useQuickStartLists}
+            showCoordinates={showCoordinates}
+            showMapDecorations={showMapDecorations}
+            showFeatureNames={showFeatureNames}
             onRowsChange={handleRowsChange}
             onColsChange={handleColsChange}
             onHoldingsChange={handleHoldingsChange}
             onLandmarksChange={handleLandmarksChange}
             onMythsChange={handleMythsChange}
             onUseQuickStartListsChange={setUseQuickStartLists}
-            onGenerateRandom={generateRandomTerrain}
-            onGenerateBalanced={generateBalancedTerrain}
-            onGenerateClustered={generateClusteredTerrain}
-            onGenerateWeighted={generateWeightedTerrain}
+            onShowCoordinatesChange={setShowCoordinates}
+            onShowMapDecorationsChange={setShowMapDecorations}
+            onShowFeatureNamesChange={setShowFeatureNames}
+            onGenerateRandom={() => fillTerrain("random")}
+            onGenerateBalanced={() => fillTerrain("balanced")}
+            onGenerateClustered={() => fillTerrain("clustered")}
+            onGenerateWeighted={() => fillTerrain("weighted")}
             onClear={clearTerrain}
             onExport={handleExportRealm}
             onImport={handleImportRealm}
@@ -664,19 +282,19 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
           <div className="w-64 flex-shrink-0">
             <HexPainter
               terrainTypes={styledTerrainTypes}
-              paintingMode={paintingMode}
-              selectedTerrainType={selectedTerrainType}
-              onStartPainting={startPainting}
-              onStopPainting={stopPainting}
+              paintingMode={hexPainting.paintingMode}
+              selectedTerrainType={hexPainting.selectedTerrainType}
+              onStartPainting={hexPainting.startPainting}
+              onStopPainting={hexPainting.stopPainting}
               terrainStyle={terrainStyle}
               onTerrainStyleChange={setTerrainStyle}
               showNames={showNames}
               onShowNamesChange={setShowNames}
-              riverDrawingMode={riverDrawingMode}
-              currentRiverPath={currentRiverPath}
-              onStartRiverDrawing={startRiverDrawing}
-              onFinishRiver={finishRiver}
-              onCancelRiver={cancelRiver}
+              riverDrawingMode={riverDrawing.riverDrawingMode}
+              currentRiverPath={riverDrawing.currentRiverPath}
+              onStartRiverDrawing={riverDrawing.startRiverDrawing}
+              onFinishRiver={riverDrawing.finishRiver}
+              onCancelRiver={riverDrawing.cancelRiver}
             />
           </div>
 
@@ -688,19 +306,33 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
               hexSize={hexSize}
               selectHex={selectHex}
               selectedHex={selectedHex}
-              paintingMode={paintingMode}
+              paintingMode={hexPainting.paintingMode}
               onHexMouseDown={handleHexMouseDown}
-              onHexMouseEnter={handleHexMouseEnter}
-              onHexMouseUp={handleHexMouseUp}
+              onHexMouseEnter={hexPainting.handleHexMouseEnter}
+              onHexMouseUp={hexPainting.handleHexMouseUp}
               terrainTypes={styledTerrainTypes}
               terrainStyle={terrainStyle}
               showNames={showNames}
-              draggingFeature={draggingFeature}
-              onFeatureDragStart={handleFeatureDragStart}
-              onFeatureDrop={handleFeatureDrop}
-              riverDrawingMode={riverDrawingMode}
-              currentRiverPath={currentRiverPath}
-              onRiverHexClick={addRiverPoint}
+              showCoordinates={showCoordinates}
+              showFeatureNames={showFeatureNames}
+              draggingFeature={featureDragDrop.draggingFeature}
+              onFeatureDragStart={featureDragDrop.handleFeatureDragStart}
+              onFeatureDrop={featureDragDrop.handleFeatureDrop}
+              riverDrawingMode={riverDrawing.riverDrawingMode}
+              currentRiverPath={riverDrawing.currentRiverPath}
+              onRiverHexClick={riverDrawing.addRiverPoint}
+              selectedRiverId={riverDrawing.selectedRiverId}
+              onRiverClick={handleRiverClick}
+              onWaypointMouseDown={riverDrawing.startWaypointDrag}
+              onWaypointDrag={riverDrawing.updateWaypointDrag}
+              onWaypointDragEnd={riverDrawing.endWaypointDrag}
+              draggingWaypoint={riverDrawing.draggingWaypoint}
+              dragPreviewPoint={riverDrawing.dragPreviewPoint}
+              dragPaths={riverDrawing.dragPaths}
+              contextMenu={riverDrawing.contextMenu}
+              onContextMenu={riverDrawing.openContextMenu}
+              onCloseContextMenu={riverDrawing.closeContextMenu}
+              onDeleteWaypoint={riverDrawing.deleteWaypoint}
             />
           </div>
 
@@ -709,21 +341,21 @@ const RealmGenerator = ({ rows = 12, cols = 12 }) => {
               realm={realm}
               selectedHex={selectedHex}
               onTerrainChange={editHexTerrain}
-              onAddHolding={addHolding}
-              onUpdateHolding={updateHolding}
-              onRemoveHolding={removeHolding}
-              onRegenerateHolding={regenerateHolding}
-              onAddLandmark={addLandmark}
-              onUpdateLandmark={updateLandmark}
-              onRemoveLandmark={removeLandmark}
-              onRegenerateLandmark={regenerateLandmark}
-              onAddMyth={addMyth}
-              onUpdateMyth={updateMyth}
-              onRemoveMyth={removeMyth}
-              onRegenerateMyth={regenerateMyth}
-              onAddBarrier={addBarrier}
-              onRemoveBarrier={removeBarrier}
-              onRemoveRiver={removeRiver}
+              onAddHolding={featureManagement.addHolding}
+              onUpdateHolding={featureManagement.updateHolding}
+              onRemoveHolding={featureManagement.removeHolding}
+              onRegenerateHolding={featureManagement.regenerateHolding}
+              onAddLandmark={featureManagement.addLandmark}
+              onUpdateLandmark={featureManagement.updateLandmark}
+              onRemoveLandmark={featureManagement.removeLandmark}
+              onRegenerateLandmark={featureManagement.regenerateLandmark}
+              onAddMyth={featureManagement.addMyth}
+              onUpdateMyth={featureManagement.updateMyth}
+              onRemoveMyth={featureManagement.removeMyth}
+              onRegenerateMyth={featureManagement.regenerateMyth}
+              onAddBarrier={featureManagement.addBarrier}
+              onRemoveBarrier={featureManagement.removeBarrier}
+              onRemoveRiver={riverDrawing.removeRiver}
               terrainTypes={styledTerrainTypes}
             />
           </div>
