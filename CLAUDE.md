@@ -36,12 +36,13 @@ root.jsx (Layout)
         │   └── NumberStepper (ui/)
         ├── TerrainLegend / TerrainStatistics
         │   └── TerrainSwatch
-        ├── HexPainter (terrain selection sidebar)
+        ├── HexPainter (terrain selection sidebar + river drawing)
         │   └── TerrainSwatch
         ├── HexMap (SVG visualization)
         │   ├── TerrainPatterns (svg/)
         │   ├── HexTile[]
-        │   │   └── FeatureMarker
+        │   ├── RiverPaths (svg/)
+        │   ├── FeatureMarker[]
         │   └── FeatureNameLabels (svg/)
         ├── HexDetails (editing panel)
         │   ├── TerrainSelector (editors/)
@@ -76,6 +77,7 @@ root.jsx (Layout)
 - `Landmark` - Named locations (Dwelling, Sanctum, Monument, Hazard, Curse, Ruin)
 - `Myth` - Mysterious forces (3+ hexes from holdings)
 - `Barrier` - Hex boundary barriers (6 possible sides per hex)
+- `River` - Path of hex coordinates with tributary support
 
 ### Hex Grid System (`app/utils/hexUtils.js`)
 
@@ -119,6 +121,18 @@ Key functions:
 - `addFeatureSection()` - Reusable PDF section renderer for holdings/landmarks/myths
 
 Styling constants in `PDF_STYLES` object for consistent formatting.
+
+### Rivers (`app/components/tool/svg/RiverPaths.jsx`)
+
+Rivers are visual path elements drawn on the map:
+- Click hexes in sequence to trace river paths (adjacency enforced)
+- Rivers automatically stop at water hex edges
+- Tributary support: rivers ending on existing rivers are marked as tributaries
+- Width increases downstream as tributaries join (base 4px, +2px per tributary, max 12px)
+- Style variants match terrain style (plain, comic, watercolour)
+- Rendered as smooth quadratic bezier curves through hex centers
+
+SVG layer order: Hex tiles → Rivers → Feature markers → Grid strokes → Selection → Barriers → Labels
 
 ### Reference Label Colors
 

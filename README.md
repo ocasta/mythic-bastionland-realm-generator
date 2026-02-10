@@ -28,6 +28,7 @@
 - **Holdings**: Add settlements and seats of power to your realm
 - **Landmarks**: Place dwellings, sanctums, monuments, hazards, curses, and ruins
 - **Myths**: Incorporate the mysterious forces that shape your world
+- **Rivers**: Draw flowing rivers that widen as tributaries merge
 - **Quick Start Mode**: Option to use only myths and seers from the Quick Start rules
 - Real-time statistics and terrain distribution analysis
 
@@ -111,6 +112,7 @@ docker run -p 3000:3000 mythic-realm-maker
    - Add **Holdings** for settlements and power centers
    - Place **Landmarks** to add character and challenges
    - Incorporate **Myths** to weave mystery into your world
+   - Draw **Rivers** by clicking "Draw River" and tracing a path through hexes
    - Drag and drop features to reposition them on the map
 
 4. **Export Your Realm:**
@@ -153,7 +155,8 @@ mythic-bastioland-realm-maker/
 │   │       │   └── BarrierManager.jsx
 │   │       └── svg/                  # SVG-specific components
 │   │           ├── TerrainPatterns.jsx
-│   │           └── FeatureNameLabels.jsx
+│   │           ├── FeatureNameLabels.jsx
+│   │           └── RiverPaths.jsx
 │   ├── utils/
 │   │   ├── realmModel.js             # Core data models
 │   │   ├── realmGenerator.js         # Generation algorithms

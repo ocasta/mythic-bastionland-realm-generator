@@ -49,6 +49,155 @@ const seatOfPowerDecorations = [
   "Jewels", "Wreaths", "Candles", "Fur", "Tapestries", "Shields"
 ];
 
+const baileyNames = [
+  "Filthy Marketplace", "Abandoned Forge", "Joyous Library", "Sophisticated Fountain",
+  "Industrious Temple", "Humble Forum", "Majestic Tomb", "Hallowed Garden",
+  "Rustic Hall", "Solemn Workshops", "Bustling Arena", "Immaculate Garrison"
+];
+
+const keepFeatures = [
+  "Hearth", "Throne", "Musicians", "Pool", "Advisers", "Servants",
+  "Shrine", "Table", "Reliquary", "Cauldron", "Chandelier", "Guards"
+];
+
+const keepDecorations = [
+  "Antlers", "Silver", "Heraldry", "Bones", "Flowers", "Scripture",
+  "Jewels", "Wreaths", "Candles", "Fur", "Tapestries", "Shields"
+];
+
+const foodAdjectives = [
+  "Spiced", "Herbal", "Crunchy", "Sour", "Dry", "Fermented",
+  "Salted", "Wet", "Fatty", "Chewy", "Sweet", "Mild"
+];
+
+const foodItems = [
+  "Fish", "Fruit", "Stew", "Mushrooms", "Pie", "Cheese",
+  "Nuts", "Cake", "Porridge", "Bread", "Vegetable", "Meat"
+];
+
+const goodsAdjectives = [
+  "Military", "Abundant", "Traditional", "Specialist", "Industrious", "Innovative",
+  "Secretive", "Simple", "Strong", "Decorated", "Fine", "Lucky"
+];
+
+const goodsItems = [
+  "Textile", "Livestock", "Grain", "Mead", "Tools", "Stone",
+  "Wood", "Pottery", "Metal", "Leather", "Honey", "Herb"
+];
+
+const luxuriesAdjectives = [
+  "Antique", "Intricate", "Unique", "Scarce", "Hazardous", "Flawless",
+  "Luminous", "Lost", "Esoteric", "Sacred", "Mythical", "Beautiful"
+];
+
+const luxuriesItems = [
+  "Jewel", "Wine", "Spice", "Fragrance", "Silk", "Fur",
+  "Artwork", "Sword", "Creature", "Ore", "Root", "Scripture"
+];
+
+const dramaThemes = [
+  "Betrayal", "Jealousy", "Rivalry", "Infidelity", "Coup", "Ambition",
+  "Redemption", "Revelation", "Wrath", "Greed", "Banishment", "Manipulation"
+];
+
+const dramaElements = [
+  "Brawl", "Poison", "Oath", "Feast", "Letters", "Disguise",
+  "Inheritance", "Assassin", "Family", "Alcohol", "Blackmail", "Gold"
+];
+
+const woeAdjectives = [
+  "Secretive", "Violent", "Looming", "Sudden", "Ongoing", "Prophecised",
+  "Mysterious", "Sanctioned", "Unseen", "Vast", "Escalating", "Concealed"
+];
+
+const woeEvents = [
+  "Disease", "Famine", "Raids", "Invasion", "Abduction", "Storm",
+  "Fire", "Revolt", "Exodus", "Beast", "Killing", "Theft"
+];
+
+const newsEvents = [
+  "Duel", "Birth", "Market", "Trial", "Ritual", "Mercenaries",
+  "Festival", "Tournament", "Punishment", "Performance", "Death", "Marriage"
+];
+
+const newsMoods = [
+  "Pensive", "Joyous", "Content", "Divided", "Furious", "Sceptical",
+  "Adoring", "Nostalgic", "Unified", "Bleak", "Solemn", "Optimistic"
+];
+
+// Ruler detail tables
+const appearanceCol1 = [
+  "Delicate", "Short", "Robust", "Hard", "Haggard", "Cold",
+  "Warm", "Youthful", "Soft", "Sickly", "Tall", "Rough"
+];
+const appearanceCol2 = [
+  "Armoured", "Tattered", "Vibrant", "Crude", "Eclectic", "Traditional",
+  "Comfortable", "Gaudy", "Drab", "Decorated", "Functional", "Elegant"
+];
+
+const voiceCol1 = [
+  "Whispering", "Soothing", "Smooth", "Flat", "Mumbled", "Weak",
+  "Strong", "Hesitant", "Melodic", "Gravelly", "Erratic", "Booming"
+];
+const voiceCol2 = [
+  "Formal", "Poetic", "Precise", "Intense", "Rambling", "Detached",
+  "Passionate", "Terse", "Relaxed", "Blunt", "Boisterous", "Friendly"
+];
+
+const personalityCol1 = [
+  "Cautious", "Spiritual", "Intellectual", "Ambitious", "Serene", "Righteous",
+  "Empathetic", "Unstable", "Prying", "Melancholic", "Cynical", "Rash"
+];
+const personalityCol2 = [
+  "Botany", "History", "Music", "Gambling", "Animals", "Art",
+  "Cookery", "Craft", "Fishing", "Fashion", "Hunting", "Stories"
+];
+
+const relationshipCol1 = [
+  "Adoring", "Reluctant", "Secret", "Estranged", "Hateful", "Distant",
+  "Harmonious", "Intimate", "Recent", "Sworn", "Tumultuous", "Resentful"
+];
+const relationshipCol2 = [
+  "Kin", "Friend", "Lover", "Spouse", "Supporter", "Ally",
+  "Rival", "Successor", "Mentor", "Peer", "Enemy", "Guardian"
+];
+
+const desireCol1 = [
+  "Escape", "Wealth", "Status", "Knowledge", "Mastery", "Heirloom",
+  "Marriage", "Truth", "Travel", "Power", "Security", "Forgiveness"
+];
+const desireCol2 = [
+  "Freedom", "Love", "Legacy", "Recovery", "Revenge", "Duty",
+  "Fear", "Guilt", "Recognition", "Defiance", "Curiosity", "Hatred"
+];
+
+const backgroundCol1 = [
+  "Deprived", "Pious", "Outcast", "Military", "Insular", "Nomadic",
+  "Drudgery", "Mercantile", "Feral", "Prestigious", "Academic", "Pampered"
+];
+const backgroundCol2 = [
+  "War", "Migration", "Riding", "Study", "Exile", "Joy",
+  "Sickness", "Escape", "Injury", "Friendship", "Execution", "Romance"
+];
+
+const ailmentCol1 = [
+  "Hidden", "Mild", "Intermittent", "Growing", "Medicated", "Denied",
+  "Unexplained", "Constant", "Diminishing", "Permanent", "Debilitating", "Obvious"
+];
+const ailmentCol2 = [
+  "Insomnia", "Migraines", "Arthritis", "Nausea", "Fixation", "Blindness",
+  "Deafness", "Melancholy", "Shaking", "Frailty", "Coughing", "Lethargy"
+];
+
+const heraldryCol1 = [
+  "Light", "Hot", "Earthy", "Rich", "Metallic", "Brilliant",
+  "Grey", "Jewelled", "Subdued", "Airy", "Cold", "Dark"
+];
+const heraldryCol2 = [
+  "Beast", "Bird", "Fish", "Weapon", "Crown", "Tree",
+  "Flower", "Bodypart", "Structure", "Ring", "Tool", "Star"
+];
+
 export function generateHoldingName(isSeatOfPower = false) {
   if (isSeatOfPower) {
     const featureRoll = Math.floor(Math.random() * 12);
@@ -58,6 +207,177 @@ export function generateHoldingName(isSeatOfPower = false) {
   const styleRoll = Math.floor(Math.random() * 12);
   const featureRoll = Math.floor(Math.random() * 12);
   return `${holdingStyles[styleRoll]} ${holdingFeatures[featureRoll]}`;
+}
+
+export function generateBaileyName() {
+  const roll = Math.floor(Math.random() * 12);
+  return baileyNames[roll];
+}
+
+export function generateKeepName() {
+  const featureRoll = Math.floor(Math.random() * 12);
+  const decorationRoll = Math.floor(Math.random() * 12);
+  return `${keepFeatures[featureRoll]} of ${keepDecorations[decorationRoll]}`;
+}
+
+export function generateFoodName() {
+  const adjRoll = Math.floor(Math.random() * 12);
+  const itemRoll = Math.floor(Math.random() * 12);
+  return `${foodAdjectives[adjRoll]} ${foodItems[itemRoll]}`;
+}
+
+export function generateGoodsName() {
+  const adjRoll = Math.floor(Math.random() * 12);
+  const itemRoll = Math.floor(Math.random() * 12);
+  return `${goodsAdjectives[adjRoll]} ${goodsItems[itemRoll]}`;
+}
+
+export function generateLuxuriesName() {
+  const adjRoll = Math.floor(Math.random() * 12);
+  const itemRoll = Math.floor(Math.random() * 12);
+  return `${luxuriesAdjectives[adjRoll]} ${luxuriesItems[itemRoll]}`;
+}
+
+export function generateDramaName() {
+  const themeRoll = Math.floor(Math.random() * 12);
+  const elementRoll = Math.floor(Math.random() * 12);
+  return `${dramaThemes[themeRoll]} ${dramaElements[elementRoll]}`;
+}
+
+export function generateWoeName() {
+  const adjRoll = Math.floor(Math.random() * 12);
+  const eventRoll = Math.floor(Math.random() * 12);
+  return `${woeAdjectives[adjRoll]} ${woeEvents[eventRoll]}`;
+}
+
+export function generateNewsName() {
+  const eventRoll = Math.floor(Math.random() * 12);
+  const moodRoll = Math.floor(Math.random() * 12);
+  return `${newsEvents[eventRoll]} ${newsMoods[moodRoll]}`;
+}
+
+export function generateAppearanceName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${appearanceCol1[roll1]} ${appearanceCol2[roll2]}`;
+}
+
+export function generateVoiceName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${voiceCol1[roll1]} ${voiceCol2[roll2]}`;
+}
+
+export function generatePersonalityName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${personalityCol1[roll1]} ${personalityCol2[roll2]}`;
+}
+
+export function generateRelationshipName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${relationshipCol1[roll1]} ${relationshipCol2[roll2]}`;
+}
+
+export function generateDesireName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${desireCol1[roll1]} ${desireCol2[roll2]}`;
+}
+
+export function generateBackgroundName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${backgroundCol1[roll1]} ${backgroundCol2[roll2]}`;
+}
+
+export function generateAilmentName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${ailmentCol1[roll1]} ${ailmentCol2[roll2]}`;
+}
+
+export function generateHeraldryName() {
+  const roll1 = Math.floor(Math.random() * 12);
+  const roll2 = Math.floor(Math.random() * 12);
+  return `${heraldryCol1[roll1]} ${heraldryCol2[roll2]}`;
+}
+
+export const holdingDetailTypes = ['None', 'Holding', 'Bailey', 'Keep', 'Food', 'Goods', 'Luxuries', 'Drama', 'Woe', 'News'];
+
+export const rulerDetailTypes = ['None', 'Appearance', 'Voice', 'Personality', 'Relationship', 'Desire', 'Background', 'Ailment', 'Heraldry'];
+
+export function generateRulerDetailName(detailType) {
+  switch (detailType) {
+    case 'Appearance':
+      return generateAppearanceName();
+    case 'Voice':
+      return generateVoiceName();
+    case 'Personality':
+      return generatePersonalityName();
+    case 'Relationship':
+      return generateRelationshipName();
+    case 'Desire':
+      return generateDesireName();
+    case 'Background':
+      return generateBackgroundName();
+    case 'Ailment':
+      return generateAilmentName();
+    case 'Heraldry':
+      return generateHeraldryName();
+    case 'None':
+    default:
+      return '';
+  }
+}
+
+export function generateDefaultRulerDetails() {
+  return [
+    { type: 'Appearance', name: generateAppearanceName() },
+    { type: 'Voice', name: generateVoiceName() },
+    { type: 'Personality', name: generatePersonalityName() },
+    { type: 'None', name: '' },
+    { type: 'None', name: '' },
+    { type: 'None', name: '' }
+  ];
+}
+
+export function generateHoldingDetailName(detailType) {
+  switch (detailType) {
+    case 'Holding':
+      return generateHoldingName(false);
+    case 'Bailey':
+      return generateBaileyName();
+    case 'Keep':
+      return generateKeepName();
+    case 'Food':
+      return generateFoodName();
+    case 'Goods':
+      return generateGoodsName();
+    case 'Luxuries':
+      return generateLuxuriesName();
+    case 'Drama':
+      return generateDramaName();
+    case 'Woe':
+      return generateWoeName();
+    case 'News':
+      return generateNewsName();
+    case 'None':
+    default:
+      return '';
+  }
+}
+
+export function generateDefaultHoldingDetails(isSeatOfPower) {
+  return [
+    { type: 'Holding', name: generateHoldingName(isSeatOfPower) },
+    { type: 'Bailey', name: generateBaileyName() },
+    { type: 'Keep', name: generateKeepName() },
+    { type: 'None', name: '' },
+    { type: 'None', name: '' },
+    { type: 'None', name: '' }
+  ];
 }
 
 const quickStartMyths = [
@@ -138,6 +458,81 @@ export class RealmGenerator {
     RealmGenerator.generateMyths(realm, myths, useQuickStartLists);  // Myths last (depends on holdings)
 
     return realm;
+  }
+
+  /**
+   * Check if a realm is completely empty (all hexes have "empty" terrain and no features)
+   */
+  static isRealmEmpty(realm) {
+    // Check if all hexes are empty terrain
+    for (let row = 0; row < realm.rows; row++) {
+      for (let col = 0; col < realm.cols; col++) {
+        const hex = realm.getHex(row, col);
+        if (hex.terrainType.type !== 'empty') {
+          return false;
+        }
+      }
+    }
+    // Also check for any features
+    return realm.holdings.length === 0 &&
+           realm.landmarks.length === 0 &&
+           realm.myths.length === 0;
+  }
+
+  /**
+   * Fill empty hexes in an existing realm and add features to reach configured totals.
+   * If the realm is completely empty, generates a full new realm.
+   */
+  static fillRealm(realm, terrainStrategy, options = {}) {
+    const holdings = options.holdings ?? 4;
+    const landmarks = options.landmarks ?? 4;
+    const myths = options.myths ?? 6;
+    const useQuickStartLists = options.useQuickStartLists ?? false;
+
+    // If realm is completely empty, generate a full new realm
+    if (this.isRealmEmpty(realm)) {
+      RealmGenerator.generateTerrain(realm, terrainStrategy);
+      RealmGenerator.generateHoldings(realm, holdings);
+      RealmGenerator.generateLandmarks(realm, landmarks, useQuickStartLists);
+      RealmGenerator.generateMyths(realm, myths, useQuickStartLists);
+      return realm;
+    }
+
+    // Fill only empty hexes with terrain
+    RealmGenerator.fillEmptyTerrain(realm, terrainStrategy);
+
+    // Add features to reach configured totals
+    const holdingsToAdd = Math.max(0, holdings - realm.holdings.length);
+    const landmarksToAdd = Math.max(0, landmarks - realm.landmarks.length);
+    const mythsToAdd = Math.max(0, myths - realm.myths.length);
+
+    // Generate features in order of strictest constraints first
+    if (holdingsToAdd > 0) {
+      RealmGenerator.generateHoldings(realm, holdingsToAdd);
+    }
+    if (landmarksToAdd > 0) {
+      RealmGenerator.generateLandmarks(realm, landmarksToAdd, useQuickStartLists);
+    }
+    if (mythsToAdd > 0) {
+      RealmGenerator.generateMyths(realm, mythsToAdd, useQuickStartLists);
+    }
+
+    return realm;
+  }
+
+  /**
+   * Fill only empty hexes in a realm with terrain
+   */
+  static fillEmptyTerrain(realm, terrainStrategy) {
+    if (terrainStrategy === "random") {
+      return TerrainGenerator.fillEmptyWithRandomTerrain(realm);
+    } else if (terrainStrategy === "balanced") {
+      return TerrainGenerator.fillEmptyWithBalancedTerrain(realm);
+    } else if (terrainStrategy === "clustered") {
+      return TerrainGenerator.fillEmptyWithClusteredTerrain(realm);
+    } else if (terrainStrategy === "weighted") {
+      return TerrainGenerator.fillEmptyWithWeightedTerrain(realm);
+    }
   }
 
   static pickRandomLocation(realm) {
@@ -249,16 +644,26 @@ export class RealmGenerator {
   }
 
   /**
-   * Find a valid position with multiple attempts
+   * Find a valid position by checking all positions and picking randomly from valid ones
    */
-  static findValidPosition(realm, validationFn, maxAttempts = 100) {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const { row, col } = this.pickRandomLocation(realm);
-      if (validationFn(realm, row, col)) {
-        return { row, col };
+  static findValidPosition(realm, validationFn) {
+    // Get all valid positions
+    const validPositions = [];
+    for (let row = 0; row < realm.rows; row++) {
+      for (let col = 0; col < realm.cols; col++) {
+        if (validationFn(realm, row, col)) {
+          validPositions.push({ row, col });
+        }
       }
     }
-    return null; // Could not find valid position
+
+    if (validPositions.length === 0) {
+      return null;
+    }
+
+    // Pick a random valid position
+    const randomIndex = Math.floor(Math.random() * validPositions.length);
+    return validPositions[randomIndex];
   }
 
   static generateHoldings(realm, count = 4) {
@@ -266,7 +671,10 @@ export class RealmGenerator {
       const position = this.findValidPosition(realm, this.isValidHoldingPosition.bind(this));
       if (position) {
         const isSeatOfPower = i === 0;
-        realm.addHolding(position.row, position.col, isSeatOfPower, generateHoldingName(isSeatOfPower));
+        const details = generateDefaultHoldingDetails(isSeatOfPower);
+        const holdingName = details[0].name;
+        const rulerDetails = generateDefaultRulerDetails();
+        realm.addHolding(position.row, position.col, isSeatOfPower, holdingName, details, "", rulerDetails);
       } else {
         console.warn(`Could not place holding ${i + 1} due to placement constraints`);
       }
@@ -274,11 +682,23 @@ export class RealmGenerator {
   }
 
   static generateLandmarks(realm, count = 4, useQuickStartOnly = false) {
+    // Get existing landmark names to avoid duplicates
+    const existingNames = new Set(realm.landmarks.map(l => l.name));
+
     for (let i = 0; i < count; i++) {
       const position = this.findValidPosition(realm, this.isValidLandmarkPosition.bind(this));
       if (position) {
         const type = pickRandomLandmarkType();
-        const label = pickRandomLandmark(type);
+
+        // Try to pick a unique landmark name (up to 50 attempts)
+        let label;
+        let attempts = 0;
+        do {
+          label = pickRandomLandmark(type);
+          attempts++;
+        } while (existingNames.has(label) && attempts < 50);
+
+        existingNames.add(label);
         const seer = type === "Sanctum" ? pickRandomSeer(useQuickStartOnly) : null;
         realm.addLandmark(position.row, position.col, type, label, seer);
       } else {
@@ -288,10 +708,21 @@ export class RealmGenerator {
   }
 
   static generateMyths(realm, count = 6, useQuickStartOnly = false) {
+    // Get existing myth names to avoid duplicates
+    const existingNames = new Set(realm.myths.map(m => m.name));
+
     for (let i = 0; i < count; i++) {
       const position = this.findValidPosition(realm, this.isValidMythPosition.bind(this));
       if (position) {
-        const name = pickRandomMyth(useQuickStartOnly);
+        // Try to pick a unique myth name (up to 50 attempts)
+        let name;
+        let attempts = 0;
+        do {
+          name = pickRandomMyth(useQuickStartOnly);
+          attempts++;
+        } while (existingNames.has(name) && attempts < 50);
+
+        existingNames.add(name);
         realm.addMyth(position.row, position.col, name);
       } else {
         console.warn(`Could not place myth ${i + 1} due to placement constraints`);
@@ -561,6 +992,189 @@ export class TerrainGenerator {
         }
       }
     }
+
+    return realm;
+  }
+
+  /**
+   * Get all empty hex positions in a realm
+   */
+  static getEmptyPositions(realm) {
+    const positions = [];
+    for (let row = 0; row < realm.rows; row++) {
+      for (let col = 0; col < realm.cols; col++) {
+        const hex = realm.getHex(row, col);
+        if (hex.terrainType.type === 'empty') {
+          positions.push({ row, col });
+        }
+      }
+    }
+    return positions;
+  }
+
+  /**
+   * Fill only empty hexes with random terrain
+   */
+  static fillEmptyWithRandomTerrain(realm) {
+    const availableTerrains = this.getAvailableTerrains();
+    const emptyPositions = this.getEmptyPositions(realm);
+
+    emptyPositions.forEach(pos => {
+      const randomTerrain = this.selectRandomTerrain(availableTerrains);
+      realm.setHex(pos.row, pos.col, randomTerrain);
+    });
+
+    return realm;
+  }
+
+  /**
+   * Fill only empty hexes with balanced terrain
+   */
+  static fillEmptyWithBalancedTerrain(realm) {
+    const availableTerrains = this.getAvailableTerrains();
+    const emptyPositions = this.shuffleArray(this.getEmptyPositions(realm));
+
+    if (emptyPositions.length === 0) return realm;
+
+    let positionIndex = 0;
+
+    // First, try to place at least one of each terrain type
+    availableTerrains.forEach((terrain) => {
+      if (positionIndex < emptyPositions.length) {
+        const pos = emptyPositions[positionIndex];
+        realm.setHex(pos.row, pos.col, terrain);
+        positionIndex++;
+      }
+    });
+
+    // Fill remaining positions with random terrain types
+    while (positionIndex < emptyPositions.length) {
+      const pos = emptyPositions[positionIndex];
+      const randomTerrain = this.selectRandomTerrain(availableTerrains);
+      realm.setHex(pos.row, pos.col, randomTerrain);
+      positionIndex++;
+    }
+
+    return realm;
+  }
+
+  /**
+   * Fill only empty hexes with weighted terrain
+   */
+  static fillEmptyWithWeightedTerrain(realm, weights = null) {
+    const availableTerrains = this.getAvailableTerrains();
+    const emptyPositions = this.getEmptyPositions(realm);
+
+    if (emptyPositions.length === 0) return realm;
+
+    const defaultWeights = {
+      plains: 0.35,
+      forest: 0.25,
+      mountain: 0.18,
+      water: 0.15,
+      desert: 0.04,
+      swamp: 0.03,
+    };
+
+    const terrainWeights = weights || defaultWeights;
+
+    // Create weighted array
+    const weightedTerrains = [];
+    availableTerrains.forEach((terrain) => {
+      const weight = terrainWeights[terrain.type] || 0.1;
+      const count = Math.floor(weight * 100);
+      for (let i = 0; i < count; i++) {
+        weightedTerrains.push(terrain);
+      }
+    });
+
+    emptyPositions.forEach(pos => {
+      const randomTerrain = this.selectRandomTerrain(weightedTerrains);
+      realm.setHex(pos.row, pos.col, randomTerrain);
+    });
+
+    return realm;
+  }
+
+  /**
+   * Fill only empty hexes with clustered terrain
+   */
+  static fillEmptyWithClusteredTerrain(realm) {
+    const emptyPositions = this.getEmptyPositions(realm);
+    if (emptyPositions.length === 0) return realm;
+
+    const availableTerrains = this.getAvailableTerrains();
+    const visited = new Set();
+
+    // Mark non-empty hexes as visited
+    for (let row = 0; row < realm.rows; row++) {
+      for (let col = 0; col < realm.cols; col++) {
+        const hex = realm.getHex(row, col);
+        if (hex.terrainType.type !== 'empty') {
+          visited.add(`${row},${col}`);
+        }
+      }
+    }
+
+    // Generate seed points only in empty hexes
+    const seedCount = Math.min(
+      availableTerrains.length,
+      Math.floor(emptyPositions.length / 4)
+    );
+    const shuffledEmpty = this.shuffleArray(emptyPositions);
+    const seeds = [];
+
+    for (let i = 0; i < seedCount && i < shuffledEmpty.length; i++) {
+      const pos = shuffledEmpty[i];
+      const terrain = availableTerrains[i % availableTerrains.length];
+      seeds.push({ row: pos.row, col: pos.col, terrain });
+    }
+
+    // Grow clusters from seed points
+    seeds.forEach((seed) => {
+      const queue = [seed];
+      const clusterSize = Math.floor(Math.random() * 8) + 3;
+      let grown = 0;
+
+      while (queue.length > 0 && grown < clusterSize) {
+        const current = queue.shift();
+        const key = `${current.row},${current.col}`;
+
+        if (
+          current.row >= 0 &&
+          current.row < realm.rows &&
+          current.col >= 0 &&
+          current.col < realm.cols &&
+          !visited.has(key)
+        ) {
+          visited.add(key);
+          realm.setHex(current.row, current.col, seed.terrain);
+          grown++;
+
+          const neighbors = [
+            { row: current.row - 1, col: current.col },
+            { row: current.row + 1, col: current.col },
+            { row: current.row, col: current.col - 1 },
+            { row: current.row, col: current.col + 1 },
+          ];
+
+          neighbors.forEach((neighbor) => {
+            if (Math.random() < 0.6) {
+              queue.push({ ...neighbor, terrain: seed.terrain });
+            }
+          });
+        }
+      }
+    });
+
+    // Fill remaining empty hexes with random terrain
+    emptyPositions.forEach(pos => {
+      const key = `${pos.row},${pos.col}`;
+      if (!visited.has(key)) {
+        const randomTerrain = this.selectRandomTerrain(availableTerrains);
+        realm.setHex(pos.row, pos.col, randomTerrain);
+      }
+    });
 
     return realm;
   }

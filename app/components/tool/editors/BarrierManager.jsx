@@ -10,7 +10,7 @@ const SIDE_LABELS = {
 const BarrierManager = ({ barriers, selectedHex, onAdd, onRemove }) => {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
         Barriers
       </label>
       <div className="space-y-2">
@@ -21,7 +21,7 @@ const BarrierManager = ({ barriers, selectedHex, onAdd, onRemove }) => {
                 key={index}
                 className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-900/20 rounded-md"
               >
-                <span className="text-sm text-gray-900 dark:text-white">
+                <span className="text-xs text-gray-900 dark:text-white">
                   {SIDE_LABELS[barrier.side]}
                 </span>
                 <button
@@ -36,7 +36,7 @@ const BarrierManager = ({ barriers, selectedHex, onAdd, onRemove }) => {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             No barriers on this hex
           </p>
         )}

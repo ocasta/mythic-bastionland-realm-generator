@@ -1,12 +1,14 @@
-import { hexUtils } from '../../utils/hexUtils';
-import FeatureMarker from './FeatureMarker';
+import { hexUtils, hexConfig } from '../../utils/hexUtils';
 
-const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, landmark, holding, myth, holdingRef, landmarkRef, mythRef, terrainTypes, showNames, draggingFeature, onFeatureDragStart }) => {
+// Distance threshold for corner snapping (in pixels)
+const CORNER_SNAP_THRESHOLD = 12;
+
+const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, showCoordinates, riverDrawingMode, onRiverHexClick }) => {
   const { x, y } = hexUtils.hexToWorld(rowIndex, colIndex, hexSize);
   const hexPath = hexUtils.generateHexPath(x, y, hexSize);
 
   // Change cursor based on mode
-  const cursorClass = paintingMode ? 'cursor-crosshair' : 'cursor-pointer';
+  const cursorClass = paintingMode || riverDrawingMode ? 'cursor-crosshair' : 'cursor-pointer';
 
   const handleMouseDown = (e) => {
     if (paintingMode) {
@@ -15,8 +17,42 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
     }
   };
 
-  const handleClick = () => {
-    if (!paintingMode) {
+  /**
+   * Detect if click is near a corner and return corner index or null
+   */
+  const detectCorner = (e) => {
+    // Get click position in SVG viewBox coordinates
+    const svg = e.target.closest('svg');
+    if (!svg) return null;
+
+    // Transform screen coordinates to SVG viewBox coordinates
+    const point = svg.createSVGPoint();
+    point.x = e.clientX;
+    point.y = e.clientY;
+    const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
+    const clickX = svgPoint.x;
+    const clickY = svgPoint.y;
+
+    // Check distance to each corner
+    for (let i = 0; i < 6; i++) {
+      const corner = hexUtils.hexCornerToWorld(rowIndex, colIndex, i, hexSize);
+      const dx = clickX - corner.x;
+      const dy = clickY - corner.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < CORNER_SNAP_THRESHOLD) {
+        return i;
+      }
+    }
+
+    return null;
+  };
+
+  const handleClick = (e) => {
+    if (riverDrawingMode) {
+      const corner = detectCorner(e);
+      onRiverHexClick && onRiverHexClick(rowIndex, colIndex, corner);
+    } else if (!paintingMode) {
       selectHex(hex);
     }
   };
@@ -29,6 +65,9 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
     ? `url(#terrain-${hex.terrainType.type})`
     : hex.terrainType.color;
 
+  // Position for coordinates text (bottom of hex)
+  const coordY = y + hexSize * 0.7;
+
   return (
     <g>
       <path
@@ -36,51 +75,35 @@ const HexTile = ({ hex, rowIndex, colIndex, hexSize, selectHex, selectedHex, pai
         fill={fill}
         stroke="none"
         className={`hex-tile ${cursorClass} hover:opacity-80 transition-opacity`}
-        onClick={handleClick}
+        onClick={(e) => handleClick(e)}
         onMouseDown={handleMouseDown}
         onMouseEnter={() => onHexMouseEnter && onHexMouseEnter(hex)}
         onMouseUp={() => onHexMouseUp && onHexMouseUp()}
         style={{ userSelect: 'none' }}
       />
-
-      {/* Render holdings */}
-      {holding && holdingRef && (
-        <FeatureMarker
-          x={x}
-          y={y}
-          label={holdingRef}
-          featureType="holding"
-          isSeatOfPower={holding.isSeatOfPower}
-          paintingMode={paintingMode}
-          draggingFeature={draggingFeature}
-          onDragStart={() => onFeatureDragStart && onFeatureDragStart('holding', rowIndex, colIndex)}
-        />
-      )}
-
-      {/* Render landmarks */}
-      {landmark && landmarkRef && (
-        <FeatureMarker
-          x={x}
-          y={y}
-          label={landmarkRef}
-          featureType="landmark"
-          paintingMode={paintingMode}
-          draggingFeature={draggingFeature}
-          onDragStart={() => onFeatureDragStart && onFeatureDragStart('landmark', rowIndex, colIndex)}
-        />
-      )}
-
-      {/* Render myths */}
-      {myth && mythRef && (
-        <FeatureMarker
-          x={x}
-          y={y}
-          label={mythRef}
-          featureType="myth"
-          paintingMode={paintingMode}
-          draggingFeature={draggingFeature}
-          onDragStart={() => onFeatureDragStart && onFeatureDragStart('myth', rowIndex, colIndex)}
-        />
+      {showCoordinates && (
+        <>
+          <ellipse
+            cx={x}
+            cy={coordY}
+            rx={hexSize * 0.32}
+            ry={hexSize * 0.18}
+            fill="white"
+            fillOpacity={0.85}
+            style={{ pointerEvents: 'none' }}
+          />
+          <text
+            x={x}
+            y={coordY}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontSize={hexSize * 0.2}
+            fill="#555"
+            style={{ userSelect: 'none', pointerEvents: 'none' }}
+          >
+            {colIndex},{rowIndex}
+          </text>
+        </>
       )}
     </g>
   );
