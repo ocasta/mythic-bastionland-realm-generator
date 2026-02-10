@@ -8,12 +8,18 @@ const RealmGenerationControls = ({
   landmarks,
   myths,
   useQuickStartLists,
+  showCoordinates,
+  showMapDecorations,
+  showFeatureNames,
   onRowsChange,
   onColsChange,
   onHoldingsChange,
   onLandmarksChange,
   onMythsChange,
   onUseQuickStartListsChange,
+  onShowCoordinatesChange,
+  onShowMapDecorationsChange,
+  onShowFeatureNamesChange,
   onGenerateRandom,
   onGenerateBalanced,
   onGenerateClustered,
@@ -59,7 +65,7 @@ const RealmGenerationControls = ({
           >
             ▶
           </span>
-          Generation Settings
+          Map Settings
         </button>
 
         {isExpanded && (
@@ -72,7 +78,7 @@ const RealmGenerationControls = ({
                 <NumberStepper
                   value={cols}
                   min={6}
-                  max={12}
+                  max={18}
                   onChange={onColsChange}
                 />
               </div>
@@ -83,7 +89,7 @@ const RealmGenerationControls = ({
                 <NumberStepper
                   value={holdings}
                   min={1}
-                  max={4}
+                  max={10}
                   onChange={onHoldingsChange}
                 />
               </div>
@@ -94,7 +100,7 @@ const RealmGenerationControls = ({
                 <NumberStepper
                   value={rows}
                   min={6}
-                  max={12}
+                  max={18}
                   onChange={onRowsChange}
                 />
               </div>
@@ -105,7 +111,7 @@ const RealmGenerationControls = ({
                 <NumberStepper
                   value={landmarks}
                   min={2}
-                  max={6}
+                  max={20}
                   onChange={onLandmarksChange}
                 />
               </div>
@@ -117,7 +123,7 @@ const RealmGenerationControls = ({
                 <NumberStepper
                   value={myths}
                   min={1}
-                  max={6}
+                  max={10}
                   onChange={onMythsChange}
                 />
               </div>
@@ -148,6 +154,87 @@ const RealmGenerationControls = ({
                   </button>
                 </div>
               </div>
+              <div className="col-span-2 flex items-center justify-between mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Show Hex Coordinates
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onShowCoordinatesChange(false)}
+                    className={`px-3 py-1 text-sm rounded border ${
+                      !showCoordinates
+                        ? 'bg-blue-500 text-white border-blue-500'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    No
+                  </button>
+                  <button
+                    onClick={() => onShowCoordinatesChange(true)}
+                    className={`px-3 py-1 text-sm rounded border ${
+                      showCoordinates
+                        ? 'bg-blue-500 text-white border-blue-500'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    Yes
+                  </button>
+                </div>
+              </div>
+              <div className="col-span-2 flex items-center justify-between mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Show Map Decorations (PDF)
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onShowMapDecorationsChange(false)}
+                    className={`px-3 py-1 text-sm rounded border ${
+                      !showMapDecorations
+                        ? 'bg-blue-500 text-white border-blue-500'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    No
+                  </button>
+                  <button
+                    onClick={() => onShowMapDecorationsChange(true)}
+                    className={`px-3 py-1 text-sm rounded border ${
+                      showMapDecorations
+                        ? 'bg-blue-500 text-white border-blue-500'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    Yes
+                  </button>
+                </div>
+              </div>
+              <div className="col-span-2 flex items-center justify-between mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Show Feature Names
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onShowFeatureNamesChange(false)}
+                    className={`px-3 py-1 text-sm rounded border ${
+                      !showFeatureNames
+                        ? 'bg-blue-500 text-white border-blue-500'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    No
+                  </button>
+                  <button
+                    onClick={() => onShowFeatureNamesChange(true)}
+                    className={`px-3 py-1 text-sm rounded border ${
+                      showFeatureNames
+                        ? 'bg-blue-500 text-white border-blue-500'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    Yes
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -157,25 +244,25 @@ const RealmGenerationControls = ({
           onClick={onGenerateRandom}
           className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
-          Generate Random
+          Fill Random
         </button>
         <button
           onClick={onGenerateBalanced}
           className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
         >
-          Generate Balanced
+          Fill Balanced
         </button>
         <button
           onClick={onGenerateClustered}
           className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600"
         >
-          Generate Clustered
+          Fill Clustered
         </button>
         <button
           onClick={onGenerateWeighted}
           className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600"
         >
-          Generate Weighted
+          Fill Weighted
         </button>
         <button
           onClick={onClear}

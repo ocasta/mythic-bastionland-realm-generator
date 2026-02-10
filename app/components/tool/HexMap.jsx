@@ -5,8 +5,12 @@ import { getHoldingLabel, getLandmarkLabel, getMythLabel } from "../../utils/fea
 import TerrainPatterns from "./svg/TerrainPatterns";
 import FeatureNameLabels from "./svg/FeatureNameLabels";
 import RiverPaths from "./svg/RiverPaths";
+import RiverWaypointHandles from "./svg/RiverWaypointHandles";
 
-const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, terrainStyle, showNames, draggingFeature, onFeatureDragStart, onFeatureDrop, riverDrawingMode, currentRiverPath, onRiverHexClick }) => {
+// Padding to prevent feature labels from being clipped on the left edge
+const LABEL_PADDING_LEFT = 60;
+
+const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, paintingMode, onHexMouseDown, onHexMouseEnter, onHexMouseUp, terrainTypes, terrainStyle, showNames, showCoordinates, showFeatureNames, draggingFeature, onFeatureDragStart, onFeatureDrop, riverDrawingMode, currentRiverPath, onRiverHexClick, selectedRiverId, onRiverClick, onWaypointMouseDown, onWaypointDrag, onWaypointDragEnd, draggingWaypoint, dragPreviewPoint, dragPaths, contextMenu, onContextMenu, onCloseContextMenu, onDeleteWaypoint }) => {
   const holdings = realm.getHoldings();
   const landmarks = realm.getLandmarks();
   const myths = realm.getMyths();
@@ -51,13 +55,47 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
     return styles[featureType] || styles.holding;
   };
 
+  // Handle SVG mouse move for waypoint dragging
+  const handleSvgMouseMove = (e) => {
+    if (draggingWaypoint && onWaypointDrag) {
+      const svg = e.currentTarget;
+      const rect = svg.getBoundingClientRect();
+      // Account for viewBox offset
+      const scaleX = (svgWidth + LABEL_PADDING_LEFT) / rect.width;
+      const scaleY = svgHeight / rect.height;
+      const worldX = (e.clientX - rect.left) * scaleX - LABEL_PADDING_LEFT;
+      const worldY = (e.clientY - rect.top) * scaleY;
+      onWaypointDrag(worldX, worldY);
+    }
+  };
+
+  // Handle SVG mouse up for waypoint dragging
+  const handleSvgMouseUp = () => {
+    if (draggingWaypoint && onWaypointDragEnd) {
+      onWaypointDragEnd();
+    }
+  };
+
+  // Handle SVG click to deselect river
+  const handleSvgClick = (e) => {
+    // Only deselect if clicking on the SVG background, not on a river
+    if (selectedRiverId && e.target === e.currentTarget) {
+      onRiverClick?.(null);
+    }
+  };
+
   return (
     <div className="hex-grid overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg p-4">
       <svg
-        width={svgWidth}
+        width={svgWidth + LABEL_PADDING_LEFT}
         height={svgHeight}
-        viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+        viewBox={`${-LABEL_PADDING_LEFT} 0 ${svgWidth + LABEL_PADDING_LEFT} ${svgHeight}`}
         className="hex-grid-svg"
+        onMouseMove={handleSvgMouseMove}
+        onMouseUp={handleSvgMouseUp}
+        onMouseLeave={handleSvgMouseUp}
+        onClick={handleSvgClick}
+        style={draggingWaypoint ? { cursor: 'grabbing' } : undefined}
       >
         <TerrainPatterns terrainTypes={terrainTypes} terrainStyle={terrainStyle} />
 
@@ -76,6 +114,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
               onHexMouseEnter={onHexMouseEnter}
               onHexMouseUp={onHexMouseUp}
               terrainTypes={terrainTypes}
+              showCoordinates={showCoordinates}
               riverDrawingMode={riverDrawingMode}
               onRiverHexClick={onRiverHexClick}
             />
@@ -89,6 +128,8 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
           terrainStyle={terrainStyle}
           currentRiverPath={currentRiverPath}
           realm={realm}
+          selectedRiverId={selectedRiverId}
+          onRiverClick={onRiverClick}
         />
 
         {/* Feature markers - rendered on top of rivers */}
@@ -119,6 +160,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
                       riverDrawingMode={riverDrawingMode}
                       draggingFeature={draggingFeature}
                       onDragStart={() => onFeatureDragStart && onFeatureDragStart('holding', rowIndex, colIndex)}
+                      onSelect={() => selectHex(hex)}
                     />
                   )}
                   {landmark && landmarkRef && (
@@ -127,10 +169,12 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
                       y={y}
                       label={landmarkRef}
                       featureType="landmark"
+                      landmarkType={landmark.type}
                       paintingMode={paintingMode}
                       riverDrawingMode={riverDrawingMode}
                       draggingFeature={draggingFeature}
                       onDragStart={() => onFeatureDragStart && onFeatureDragStart('landmark', rowIndex, colIndex)}
+                      onSelect={() => selectHex(hex)}
                     />
                   )}
                   {myth && mythRef && (
@@ -143,6 +187,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
                       riverDrawingMode={riverDrawingMode}
                       draggingFeature={draggingFeature}
                       onDragStart={() => onFeatureDragStart && onFeatureDragStart('myth', rowIndex, colIndex)}
+                      onSelect={() => selectHex(hex)}
                     />
                   )}
                 </g>
@@ -255,6 +300,21 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
           })}
         </g>
 
+        {/* River waypoint handles - rendered on top of features for drag interaction */}
+        <RiverWaypointHandles
+          rivers={rivers}
+          hexSize={hexSize}
+          selectedRiverId={selectedRiverId}
+          onWaypointMouseDown={onWaypointMouseDown}
+          draggingWaypoint={draggingWaypoint}
+          dragPreviewPoint={dragPreviewPoint}
+          dragPaths={dragPaths}
+          contextMenu={contextMenu}
+          onContextMenu={onContextMenu}
+          onCloseContextMenu={onCloseContextMenu}
+          onDeleteWaypoint={onDeleteWaypoint}
+        />
+
         {/* Feature name labels - rendered on top of everything */}
         {showNames && (
           <FeatureNameLabels
@@ -262,6 +322,7 @@ const HexMap = ({ realm, svgWidth, svgHeight, hexSize, selectHex, selectedHex, p
             landmarks={landmarks}
             myths={myths}
             hexSize={hexSize}
+            showFeatureNames={showFeatureNames}
           />
         )}
       </svg>

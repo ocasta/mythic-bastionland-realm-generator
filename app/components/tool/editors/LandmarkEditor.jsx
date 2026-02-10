@@ -1,7 +1,7 @@
 import { landmarkTypes } from '../../../utils/realmModel';
 import { pickRandomLandmark, pickRandomSeer } from '../../../utils/realmGenerator';
 
-const LandmarkEditor = ({ landmark, selectedHex, onUpdate, onRemove }) => {
+const LandmarkEditor = ({ landmark, selectedHex, onUpdate, onRemove, onRegenerate }) => {
   const handleTypeChange = (newType) => {
     const newName = pickRandomLandmark(newType);
     const newSeer = newType === 'Sanctum' ? pickRandomSeer() : null;
@@ -10,15 +10,23 @@ const LandmarkEditor = ({ landmark, selectedHex, onUpdate, onRemove }) => {
   return (
     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
       <div className="flex items-center justify-between mb-2">
-        <span className="font-medium text-sm text-gray-900 dark:text-white">
+        <span className="font-medium text-xs text-gray-900 dark:text-white">
           Landmark
         </span>
-        <button
-          onClick={() => onRemove(selectedHex.row, selectedHex.col)}
-          className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-xs"
-        >
-          Remove
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => onRegenerate(selectedHex.row, selectedHex.col)}
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-xs"
+          >
+            Regenerate
+          </button>
+          <button
+            onClick={() => onRemove(selectedHex.row, selectedHex.col)}
+            className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-xs"
+          >
+            Remove
+          </button>
+        </div>
       </div>
       <div className="space-y-2">
         <div>
@@ -28,7 +36,7 @@ const LandmarkEditor = ({ landmark, selectedHex, onUpdate, onRemove }) => {
           <select
             value={landmark.type}
             onChange={(e) => handleTypeChange(e.target.value)}
-            className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           >
             {landmarkTypes.map((type) => (
               <option key={type} value={type}>
@@ -52,7 +60,7 @@ const LandmarkEditor = ({ landmark, selectedHex, onUpdate, onRemove }) => {
                 e.target.value
               )
             }
-            className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             placeholder="Landmark name"
           />
         </div>
@@ -73,7 +81,7 @@ const LandmarkEditor = ({ landmark, selectedHex, onUpdate, onRemove }) => {
                   e.target.value
                 )
               }
-              className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               placeholder="Landmark seer"
             />
           </div>
